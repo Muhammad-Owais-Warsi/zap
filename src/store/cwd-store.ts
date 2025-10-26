@@ -1,0 +1,46 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+interface CwdStore {
+    workspaces: string[];
+    name: string | null;
+    selectedFile: {
+        path: string;
+        content: string;
+    } | null;
+    setWorkspaces: (workspace: string[]) => void;
+    workspaceUpdateTrigger: number;
+    setSelectedFile: (path: string, content: string) => void;
+    updateName: (name: string) => void;
+    resetCwdStore: () => void;
+    triggerWorkspaceUpdate: () => void;
+}
+
+export const useCwdStore = create<CwdStore>()(
+    persist(
+        (set) => ({
+            workspaces: [],
+            name: null,
+            selectedFile: null,
+            workspaceUpdateTrigger: 0,
+
+            setWorkspaces: (workspace) => set({ workspaces: workspace }),
+            updateName: (name) => set({ name }),
+            setSelectedFile: (path, content) =>
+                set({ selectedFile: { path, content } }),
+            resetCwdStore: () =>
+                set({
+                    name: null,
+                    selectedFile: null,
+                    workspaceUpdateTrigger: 0,
+                }),
+            triggerWorkspaceUpdate: () =>
+                set((state) => ({
+                    workspaceUpdateTrigger: state.workspaceUpdateTrigger + 1,
+                })),
+        }),
+        {
+            name: "cwd-store",
+        },
+    ),
+);
