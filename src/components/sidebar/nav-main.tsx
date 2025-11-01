@@ -24,7 +24,6 @@ import {
     getZapFileContent,
     moveZapRequest,
     renameZapRequest,
-    renameZapFolder,
 } from "@/file-system/fs-operation";
 import { Button } from "../ui/button";
 import { IGNORED_FILES } from "@/lib/ignored-files";
@@ -181,6 +180,7 @@ function NavMainContent({
         target?: string;
     }>({});
     const selectedFile = useCwdStore((state) => state.selectedFile);
+    const setRequest = useZapRequest((state) => state.setRequest);
     const setSelectedFile = useCwdStore((state) => state.setSelectedFile);
     const setActiveTab = useTabsStore((state) => state.setActiveTab);
     const triggerWorkspaceUpdate = useCwdStore(
@@ -192,6 +192,7 @@ function NavMainContent({
         try {
             const content = await getZapFileContent(path);
             setSelectedFile(path, content.message);
+            setRequest(JSON.parse(content.message), path);
             setActiveTab({ name, path });
         } catch (err) {
             console.error("Failed to load file:", err);
@@ -218,6 +219,7 @@ function NavMainContent({
             const content = await getZapFileContent(path);
             triggerWorkspaceUpdate();
             setSelectedFile(path, content.message);
+            setRequest(JSON.parse(content.message), path);
             setActiveTab({ name: fileName, path });
         } catch (err) {
             console.error(err);

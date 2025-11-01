@@ -40,10 +40,10 @@ export default function SideHeaders({ workspace }: { workspace: string }) {
     };
 
     const handleCreateWorkspace = async () => {
-        await createZapWorkspace("new");
+        console.log(await createZapWorkspace("hello_new_zap"));
         resetCwdStore();
         resetTabsStore();
-        updateName("new");
+        updateName("hello_new_zap");
     };
 
     return (

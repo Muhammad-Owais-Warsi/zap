@@ -15,17 +15,8 @@
                 "label": "main",
                 "title": "zap",
                 "url": "index.html",
-                "visible": false,
                 "width": 1000,
                 "height": 700
-            },
-            {
-                "label": "splashscreen",
-                "title": "Loading…",
-                "url": "splash.html",
-                "width": 1000,
-                "height": 700,
-                "resizable": false
             }
         ],
         "security": {

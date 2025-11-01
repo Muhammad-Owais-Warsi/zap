@@ -17,7 +17,7 @@ export type ZapAuthType = "no-auth" | "basic" | "bearer" | "api-key";
 
 export type ZapAuth = {
     type: ZapAuthType;
-    config?: ZapApiKeyAuth;
+    config?: ZapAuthConfig;
 };
 
 export type ZapAuthConfig = ZapBasicAuth | ZapBearerAuth | ZapApiKeyAuth;
@@ -74,12 +74,14 @@ export type ZapRequest = {
     params: ZapQueryParams[];
     auth: ZapAuth;
     networkConfig: ZapNetworkConfig;
-    variables?: ZapVariables[];
+    // variables?: ZapVariables[];
 };
 
 export type ZapHeaders = {
     key: string;
     value: string;
+    default: boolean;
+    description: string;
     enabled?: boolean;
 };
 

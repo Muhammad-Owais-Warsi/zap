@@ -5,12 +5,15 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
-    SidebarRail,
 } from "@/components/ui/sidebar";
 import { entriesType, useWorkspaceRecursive } from "@/hooks/useWorkspace";
 import SideHeaders from "./sidebar-header";
 import { useZapRequest } from "@/store/request-store";
 import { useEffect } from "react";
+import { IGNORED_FILES } from "@/lib/ignored-files";
+import { Button } from "../ui/button";
+import { Settings } from "lucide-react";
+import { ModeToggle } from "../theme/theme-toggle";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     workspace: string;
@@ -24,15 +27,18 @@ export function AppSidebar({ workspace, ...props }: AppSidebarProps) {
 
     useEffect(() => {
         function initRequests(items: entriesType[]) {
-            items?.forEach((file) => {
-                if (!file.isDir) {
-                    setPathAndName(file.path, file.name);
-                }
+            items
+                ?.filter((file) => !IGNORED_FILES.includes(file.name))
+                .forEach((file) => {
+                    console.log(file);
+                    if (!file.isDir) {
+                        setPathAndName(file.path, file.name);
+                    }
 
-                if (file.isDir && file.items) {
-                    initRequests(file.items);
-                }
-            });
+                    if (file.isDir && file.items) {
+                        initRequests(file.items);
+                    }
+                });
         }
 
         initRequests(entries);
@@ -53,7 +59,13 @@ export function AppSidebar({ workspace, ...props }: AppSidebarProps) {
             <SidebarContent>
                 <NavMain items={entries} workspace={workspace} />
             </SidebarContent>
-            <SidebarRail />
+            <SidebarFooter className="border-t border-border p-3 flex flex-row justify-between items-center">
+                <ModeToggle />
+
+                <Button variant="ghost" size="icon">
+                    <Settings />
+                </Button>
+            </SidebarFooter>
         </Sidebar>
     );
 }

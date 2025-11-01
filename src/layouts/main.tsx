@@ -1,4 +1,6 @@
+import PlaygroundFooter from "@/components/playground/footer";
 import Render from "@/components/playground/render";
+import PlaygroundTabs from "@/components/playground/tabs/tabs";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -7,6 +9,7 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { WorkspaceSwitcher } from "@/components/workspace/switcher";
+import { Loader } from "lucide-react";
 // import { useCwdStore } from "@/store/cwd-store";
 
 interface AppLayoutProps {
@@ -14,41 +17,24 @@ interface AppLayoutProps {
 }
 
 export default function MainLayout({ workspace }: AppLayoutProps) {
-    console.log("MainLayout re-rendered");
-    // const selectedFile = useCwdStore((state) => state.selectedFile);
+    if (!workspace) {
+        return <Loader className="animate-spin" />;
+    }
 
     return (
         <SidebarProvider>
             <AppSidebar workspace={workspace} />
             <SidebarInset>
-                <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+                <header className="flex h-16 shrink-0 items-center gap-2">
                     <div className="flex items-center gap-2 px-4">
-                        <SidebarTrigger className="-ml-1" />
-                        <Separator
-                            orientation="vertical"
-                            className="mr-2 data-[orientation=vertical]:h-4"
-                        />
-                        <WorkspaceSwitcher />
-                        {/*<Breadcrumb>
-                            <BreadcrumbList>
-                                <BreadcrumbItem className="hidden md:block">
-                                    <BreadcrumbLink href="#">
-                                        Building Your Application
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator className="hidden md:block" />
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage>
-                                        Data Fetching
-                                    </BreadcrumbPage>
-                                </BreadcrumbItem>
-                            </BreadcrumbList>
-                        </Breadcrumb>*/}
+                        {/*<PlaygroundTabs />*/}
+                        {/*<WorkspaceSwitcher />*/}
                     </div>
                 </header>
                 <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
                     <Render />
                 </main>
+                <PlaygroundFooter />
             </SidebarInset>
         </SidebarProvider>
     );

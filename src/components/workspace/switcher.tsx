@@ -22,7 +22,6 @@ export function WorkspaceSwitcher() {
     const updateName = useCwdStore((state) => state.updateName);
     const workspaces = useCwdStore((state) => state.workspaces);
 
-    // Create filtered workspaces array
     const filteredWorkspaces =
         workspaces?.filter((item) => item !== name) || [];
 
@@ -37,7 +36,6 @@ export function WorkspaceSwitcher() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    // Reset selectedIndex when dialog opens
     useEffect(() => {
         if (open) {
             setSelectedIndex(0);

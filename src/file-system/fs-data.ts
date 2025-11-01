@@ -60,26 +60,39 @@ export const DEFAULT_HEADERS: ZapHeaders[] = [
     {
         key: "Cache-Control",
         value: "no-cache",
+        default: true,
+        description: "Prevent the server from returning stale response.",
         enabled: true,
     },
     {
         key: "Content-Type",
         value: "application/json",
+        default: true,
+        description: "Type of content accepted by the request.",
         enabled: true,
     },
     {
         key: "Accept",
         value: "*/*",
+        default: true,
+        description:
+            "Tell the server that Zap can process all forms of response and content-types.",
         enabled: true,
     },
     {
         key: "Accept-Encoding",
         value: "gzip, defalte, br",
+        default: true,
+        description:
+            "Indicates the server that Zap client supports defined list of content encoding or compression algorithm as response.",
         enabled: true,
     },
     {
         key: "Connection",
         value: "keep-alive",
+        default: true,
+        description:
+            "Indicates the server to keep the underlying connection open once the current response is recieved for faster processing of further requests.",
         enabled: true,
     },
 ];
