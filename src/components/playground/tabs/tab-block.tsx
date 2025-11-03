@@ -44,7 +44,7 @@ export default function TabBlock({
     return (
         <div
             onClick={handleTabClick}
-            className={`group flex items-center gap-2 px-4 py-2 border-b-2 cursor-pointer select-none
+            className={`group flex items-center gap-2 px-4 py-2 border-b-2 cursor-pointer select-none h-10
                 ${
                     isActive
                         ? "border-primary text-primary font-medium bg-background"
@@ -57,6 +57,7 @@ export default function TabBlock({
                 onClick={handleCloseTab}
                 variant="ghost"
                 size="icon-sm"
+                className="hover:cursor-pointer"
                 // className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
             >
                 <X className="h-3 w-3" />

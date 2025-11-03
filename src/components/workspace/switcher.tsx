@@ -103,7 +103,7 @@ export function WorkspaceSwitcher() {
                                 key={item}
                                 onClick={() => handleSelect(idx)}
                                 onMouseEnter={() => setSelectedIndex(idx)}
-                                className={`p-2 rounded cursor-pointer text-sm transition-colors ${
+                                className={`p-2 rounded cursor-pointer text-sm  ${
                                     idx === selectedIndex
                                         ? "bg-primary text-primary-foreground"
                                         : "hover:bg-muted"

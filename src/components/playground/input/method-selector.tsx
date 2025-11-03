@@ -34,13 +34,13 @@ export default function PlaygroundMethodSelector() {
     }
 
     return (
-        <div>
+        <div className="flex-none">
             <Select
                 onValueChange={(value) => handleMethodChange(value)}
                 value={currentRequest?.method || "GET"} // fallback if undefined
                 disabled={!currentRequest} // disable select if no file selected
             >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[120px]">
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

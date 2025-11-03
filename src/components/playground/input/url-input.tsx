@@ -3,7 +3,6 @@ import { useZapRequest } from "@/store/request-store";
 import { useCwdStore } from "@/store/cwd-store";
 
 export default function PlaygroundUrlInput() {
-    // const getRequest = useZapRequest((state) => state.getRequest);
     const selectedFile = useCwdStore((state) => state.selectedFile);
     const setUrl = useZapRequest((state) => state.setUrl);
 
@@ -12,8 +11,9 @@ export default function PlaygroundUrlInput() {
     }
 
     return (
-        <div>
+        <div className="w-full min-w-0">
             <Input
+                className="w-full"
                 placeholder="Enter request URL..."
                 onChange={(e) => handleUrlChange(e.target.value)}
             />

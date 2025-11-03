@@ -28,6 +28,7 @@ import {
 import { Button } from "../ui/button";
 import { IGNORED_FILES } from "@/lib/ignored-files";
 import { useZapRequest } from "@/store/request-store";
+import MethodBadge from "../theme/method-badge";
 
 type DragItem = { path: string; isDir: boolean; name: string };
 
@@ -118,11 +119,7 @@ function DraggableFile({
                     onDoubleClick={() => setIsRenaming(true)}
                 >
                     <span>{ignoreExt(file.name)}</span>
-                    {method && (
-                        <span className="text-xs text-muted-foreground">
-                            {method}
-                        </span>
-                    )}
+                    {method && <MethodBadge method={method} />}
                 </SidebarMenuButton>
             )}
         </SidebarMenuItem>
@@ -316,6 +313,7 @@ function NavMainContent({
                     ),
                 )}
             </SidebarMenu>
+            // remove this
             {sourceTarget.source && sourceTarget.target && (
                 <div className="mt-2 p-2 text-xs text-destructive bg-destructive/10 rounded">
                     Moving: {sourceTarget.source.name} →{" "}

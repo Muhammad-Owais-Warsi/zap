@@ -12,50 +12,52 @@ import { Plus } from "lucide-react";
 
 export default function PlaygroundTabs() {
     const tabs = useTabsStore((state) => state.tabs);
+    const addNewTab = useTabsStore((state) => state.addNewTab);
+
     const setRequest = useZapRequest((state) => state.setRequest);
     const workspace = useCwdStore((state) => state.name);
     const triggerWorkspaceUpdate = useCwdStore(
         (state) => state.triggerWorkspaceUpdate,
     );
-    const addNewTab = useTabsStore((state) => state.addNewTab);
     const setSelectedFile = useCwdStore((state) => state.setSelectedFile);
 
     async function handleNewTab() {
-        const name = `NEW_REQUEST_${Date.now().toString()}`;
+        const name = `NEW_REQUEST_${Date.now()}`;
 
-        if (workspace) {
-            await createZapRequest(name, workspace);
-            const content = await getZapFileContent(
-                `${workspace}/${name}.json`,
-            );
-            setRequest(JSON.parse(content.message), workspace);
-            triggerWorkspaceUpdate();
-            addNewTab({ name: `${name}.json`, path: workspace });
-            setSelectedFile(workspace, content.message);
-        }
+        if (!workspace) return;
+
+        await createZapRequest(name, workspace);
+        const content = await getZapFileContent(`${workspace}/${name}.json`);
+
+        const json = JSON.parse(content.message);
+        setRequest(json, workspace);
+        addNewTab({ name: `${name}.json`, path: `${workspace}/${name}.json` });
+        setSelectedFile({
+            name: `${name}.json`,
+            path: `${workspace}/${name}.json`,
+        });
+        triggerWorkspaceUpdate();
     }
 
     return (
-        <div className="flex items-center border-b border-border bg-background/80 backdrop-blur-sm">
-            {/* Scrollable Tabs */}
-            <ScrollArea className="flex-1 w-[350px] whitespace-nowrap">
-                <div className="flex items-center">
-                    {tabs.map((v, k) => (
-                        <TabBlock key={k} name={v.name} path={v.path} />
+        <div className="flex items-center border-b border-border bg-background/80 backdrop-blur-sm h-10">
+            <ScrollArea className="flex-1 whitespace-nowrap w-[80px]">
+                <div className="flex items-center  gap-1">
+                    {tabs.map((tab, idx) => (
+                        <TabBlock key={idx} name={tab.name} path={tab.path} />
                     ))}
                 </div>
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>
 
-            {/* Sticky Add Tab Button */}
             <div className="border-l border-border shrink-0">
                 <Button
                     variant="ghost"
-                    size="icon"
-                    className="rounded-none h-10 w-10"
+                    className="rounded-none h-10 px-3 flex items-center gap-2 hover:cursor-pointer"
                     onClick={handleNewTab}
                 >
                     <Plus className="h-4 w-4" />
+                    <span>Add New</span>
                 </Button>
             </div>
         </div>

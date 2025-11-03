@@ -58,7 +58,7 @@ export const useTabsStore = create<Tabs>()(
                 }),
         }),
         {
-            name: "tabs-storage", // key for localStorage
+            name: "tabs-storage",
         },
     ),
 );
