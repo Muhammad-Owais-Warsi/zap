@@ -7,8 +7,9 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useCwdStore } from "@/store/cwd-store";
 import { useState } from "react";
-import { Plus, Folder, File } from "lucide-react";
+import { Folder, File } from "lucide-react";
 import { useTabsStore } from "@/store/tabs-store";
+import { WorkspaceSwitcher } from "../workspace/switcher";
 
 export default function SideHeaders({ workspace }: { workspace: string }) {
     const updateName = useCwdStore((state) => state.updateName);
@@ -48,15 +49,19 @@ export default function SideHeaders({ workspace }: { workspace: string }) {
 
     return (
         <div className="p-2 space-y-2">
-            <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={handleCreateWorkspace}
-            >
-                <Plus className="w-4 h-4 mr-2" />
-                New Workspace
-            </Button>
+            <div className="flex items-center justify-between gap-2">
+                {/*<Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCreateWorkspace}
+                    className="flex items-center gap-2"
+                >
+                    <Plus className="w-4 h-4" />
+                    New Workspace
+                </Button>*/}
+
+                <WorkspaceSwitcher />
+            </div>
 
             <div className="space-y-1">
                 {!showCreateFolder ? (

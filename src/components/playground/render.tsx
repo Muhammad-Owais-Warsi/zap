@@ -2,6 +2,7 @@ import { useCwdStore } from "@/store/cwd-store";
 import PlaygroundTabs from "./tabs/tabs";
 import PlaygroundMainInput from "./input/main";
 import PlaygroundMainConfig from "./config/main";
+import { Separator } from "../ui/separator";
 
 export default function Render() {
     const selectedFile = useCwdStore((state) => state.selectedFile);
@@ -12,13 +13,17 @@ export default function Render() {
                 <PlaygroundTabs />
             </div>
 
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-                {/* Make left column take remaining space and allow children to shrink */}
-                <div className="flex-1 p-4 flex flex-col min-h-0 min-w-0">
+            <div className="flex min-h-0 overflow-hidden">
+                <div className="w-full p-4 flex flex-col min-h-0 min-w-0">
                     <PlaygroundMainInput />
                 </div>
+            </div>
+            <Separator orientation="horizontal" className="w-full my-2" />
 
-                {/* Right column stays half width (or change to a fixed w-[xxx] if you prefer) */}
+            <div className="flex min-h-0 overflow-hidden ">
+                <div className="w-full pt-2 flex flex-col min-h-0 min-w-0">
+                    <PlaygroundMainConfig />
+                </div>
             </div>
         </div>
     );

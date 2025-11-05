@@ -20,7 +20,6 @@ const HTTP_METHODS = [
 ];
 
 export default function PlaygroundMethodSelector() {
-    const getRequest = useZapRequest((state) => state.getRequest);
     const selectedFile = useCwdStore((state) => state.selectedFile);
     const setMethod = useZapRequest((state) => state.setMethod);
 
@@ -30,23 +29,28 @@ export default function PlaygroundMethodSelector() {
     });
 
     function handleMethodChange(value: string) {
-        setMethod(selectedFile?.path!, value);
+        setMethod(value, selectedFile?.path!);
     }
 
     return (
         <div className="flex-none">
             <Select
                 onValueChange={(value) => handleMethodChange(value)}
-                value={currentRequest?.method || "GET"} // fallback if undefined
-                disabled={!currentRequest} // disable select if no file selected
+                value={currentRequest?.method || "GET"}
+                disabled={!currentRequest}
             >
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-[120px] hover:cursor-pointer">
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>
                         {HTTP_METHODS.map((v) => (
-                            <SelectItem value={v}>{v}</SelectItem>
+                            <SelectItem
+                                value={v}
+                                className="hover:cursor-pointer"
+                            >
+                                {v}
+                            </SelectItem>
                         ))}
                     </SelectGroup>
                 </SelectContent>

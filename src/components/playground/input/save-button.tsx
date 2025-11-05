@@ -1,22 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { useCwdStore } from "@/store/cwd-store";
 import { useZapRequest } from "@/store/request-store";
-import { AlertCircle, Save } from "lucide-react";
-import { useEffect } from "react";
+import { Save } from "lucide-react";
 
 export default function PlaygroundSaveButton() {
     const selectedFile = useCwdStore((state) => state.selectedFile);
-    const getRequest = useZapRequest((state) => state.getRequest);
+    const isSaved = useZapRequest(
+        (state) => state.getRequest(selectedFile?.path)?.isSaved,
+    );
     const markSaved = useZapRequest((state) => state.markSaved);
 
-    let isSave = false;
-
-    useEffect(() => {
-        if (selectedFile) {
-            const req = getRequest(selectedFile?.path);
-            isSave = req?.isSaved || false;
-        }
-    }, [getRequest, markSaved]);
+    // logic for saving
+    // maybe follow this
+    // - first save in store
+    // - then actual file
 
     return (
         <div className="flex-none">
@@ -25,12 +22,12 @@ export default function PlaygroundSaveButton() {
                 className="relative hover:cursor-pointer flex items-center gap-2"
             >
                 <Save className="h-4 w-4" />
-                {isSave ? (
+                {isSaved ? (
                     "Save"
                 ) : (
                     <>
                         Save{" "}
-                        <span className="h-2 w-2 rounded-full bg-blue-300" />
+                        <span className="h-2 w-2 rounded-full bg-primary" />
                     </>
                 )}
             </Button>

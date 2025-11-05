@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 import { type entriesType } from "@/hooks/useWorkspace";
 import ignoreExt from "@/lib/ignore-extension";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCwdStore } from "@/store/cwd-store";
 import { useTabsStore } from "@/store/tabs-store";
 import {
@@ -83,6 +83,8 @@ function DraggableFile({
         (state) => state.getRequest(file.path)?.method,
     );
 
+    const selectedFile = useCwdStore((state) => state.selectedFile);
+
     const handleRename = async () => {
         if (!newName.trim() || newName === file.name) return;
         try {
@@ -114,12 +116,22 @@ function DraggableFile({
                 />
             ) : (
                 <SidebarMenuButton
-                    className="flex justify-between"
+                    className={`flex items-center justify-between rounded-sm ${
+                        selectedFile?.path === file.path
+                            ? "bg-primary/10 text-primary border-primary"
+                            : "hover:bg-muted"
+                    }`}
                     onClick={() => handleFileClick(file.path, file.name)}
                     onDoubleClick={() => setIsRenaming(true)}
                 >
-                    <span>{ignoreExt(file.name)}</span>
-                    {method && <MethodBadge method={method} />}
+                    <span className="flex-1 truncate text-left">
+                        {ignoreExt(file.name)}
+                    </span>
+                    {method && (
+                        <div className="shrink-0 ml-2">
+                            <MethodBadge method={method} />
+                        </div>
+                    )}
                 </SidebarMenuButton>
             )}
         </SidebarMenuItem>
@@ -179,10 +191,26 @@ function NavMainContent({
     const selectedFile = useCwdStore((state) => state.selectedFile);
     const setRequest = useZapRequest((state) => state.setRequest);
     const setSelectedFile = useCwdStore((state) => state.setSelectedFile);
+    const activeTab = useTabsStore((state) => state.activeTab);
     const setActiveTab = useTabsStore((state) => state.setActiveTab);
     const triggerWorkspaceUpdate = useCwdStore(
         (state) => state.triggerWorkspaceUpdate,
     );
+
+    useEffect(() => {
+        const fetchFileContent = async () => {
+            if (activeTab && selectedFile?.path) {
+                try {
+                    const content = await getZapFileContent(selectedFile.path);
+                    setRequest(JSON.parse(content.message), selectedFile.path);
+                } catch (err) {
+                    console.error("Failed to load file content:", err);
+                }
+            }
+        };
+
+        fetchFileContent();
+    }, []);
 
     const handleFileClick = async (path: string, name: string) => {
         if (selectedFile?.path === path) return;
@@ -313,7 +341,7 @@ function NavMainContent({
                     ),
                 )}
             </SidebarMenu>
-            // remove this
+            {/*remove this*/}
             {sourceTarget.source && sourceTarget.target && (
                 <div className="mt-2 p-2 text-xs text-destructive bg-destructive/10 rounded">
                     Moving: {sourceTarget.source.name} →{" "}

@@ -32,17 +32,14 @@ export default function PlaygroundTabs() {
         const json = JSON.parse(content.message);
         setRequest(json, workspace);
         addNewTab({ name: `${name}.json`, path: `${workspace}/${name}.json` });
-        setSelectedFile({
-            name: `${name}.json`,
-            path: `${workspace}/${name}.json`,
-        });
+        setSelectedFile(`${workspace}/${name}.json`, content.message);
         triggerWorkspaceUpdate();
     }
 
     return (
         <div className="flex items-center border-b border-border bg-background/80 backdrop-blur-sm h-10">
-            <ScrollArea className="flex-1 whitespace-nowrap w-[80px]">
-                <div className="flex items-center  gap-1">
+            <ScrollArea className="flex-1 whitespace-nowrap w-2.5">
+                <div className="flex items-center ">
                     {tabs.map((tab, idx) => (
                         <TabBlock key={idx} name={tab.name} path={tab.path} />
                     ))}

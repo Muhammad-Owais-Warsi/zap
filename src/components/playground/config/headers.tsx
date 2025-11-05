@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useCwdStore } from "@/store/cwd-store";
 import { useZapRequest } from "@/store/request-store";
-import { Plus } from "lucide-react";
+import { InfoIcon, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -19,11 +19,25 @@ import {
     useReactTable,
     ColumnDef,
 } from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
+import {
+    InputGroupAddon,
+    InputGroup,
+    InputGroupInput,
+    InputGroupButton,
+} from "@/components/ui/input-group";
+import {
+    TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+} from "@/components/ui/tooltip";
 
-export interface QueryParamRow {
+export interface HeadersRow {
     id: string;
     key: string;
     value: string;
+    default: boolean;
+    description: string;
     enabled: boolean;
 }
 
@@ -31,36 +45,47 @@ export default function PlaygroundConfigHeadersTable() {
     const selectedFile = useCwdStore((state) => state.selectedFile);
     const getRequest = useZapRequest((state) => state.getRequest);
     const setQueryParams = useZapRequest((state) => state.setQueryParams);
+    const setHeaders = useZapRequest((state) => state.setHeaders);
 
-    const [data, setData] = useState<QueryParamRow[]>([]);
+    const [data, setData] = useState<HeadersRow[]>([]);
 
     useEffect(() => {
         if (!selectedFile) return;
         const req = getRequest(selectedFile.path);
-        if (!req?.queryParams) {
+        if (!req?.headers) {
             setData([]);
             return;
         }
+        console.log("HEADERS", req.headers);
+        const loaded = req.headers.map((h, idx) => ({
+            id: idx.toString(),
+            key: h.key,
+            value: h.value,
+            default: h.default,
+            description: h.description,
+            enabled: h.enabled ?? true,
+        }));
 
-        const loaded = req.queryParams.map((obj, idx) => {
-            const key = Object.keys(obj)[0];
-            const value = obj[key];
-            return { id: idx.toString(), key, value, enabled: true };
-        });
         setData(loaded);
     }, [selectedFile, getRequest]);
 
     const updateStore = useCallback(
-        (rows: QueryParamRow[]) => {
-            const activeParams: Record<string, string>[] = rows
-                .filter((d) => d.enabled && d.key)
-                .map((d) => ({ [d.key]: d.value }));
+        (rows: HeadersRow[]) => {
+            const activeParams = rows
+                .filter((d) => d.key)
+                .map((d) => ({
+                    key: d.key,
+                    value: d.value,
+                    description: d.description,
+                    default: d.default,
+                    enabled: d.enabled,
+                }));
 
             if (selectedFile?.path) {
-                setQueryParams(activeParams, selectedFile.path);
+                setHeaders(activeParams, selectedFile.path);
             }
         },
-        [selectedFile, setQueryParams],
+        [selectedFile, setHeaders],
     );
 
     const handleInputChange = useCallback(
@@ -103,7 +128,7 @@ export default function PlaygroundConfigHeadersTable() {
         });
     }, [updateStore]);
 
-    const columns = useMemo<ColumnDef<QueryParamRow>[]>(
+    const columns = useMemo<ColumnDef<HeadersRow>[]>(
         () => [
             {
                 id: "select",
@@ -135,21 +160,32 @@ export default function PlaygroundConfigHeadersTable() {
                 cell: ({ row }) => {
                     const isDisabled = !row.original.enabled;
                     return (
-                        <input
-                            type="text"
-                            value={row.original.key}
-                            disabled={isDisabled}
-                            className={`w-full border px-2 py-1 ${
-                                isDisabled ? "bg-gray-100" : ""
-                            }`}
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "key",
-                                    e.target.value,
-                                )
-                            }
-                        />
+                        <InputGroup>
+                            <InputGroupInput
+                                type="text"
+                                value={row.original.key}
+                                disabled={row.original.default}
+                                className="w-full"
+                            />
+                            <InputGroupAddon align="inline-end">
+                                <Tooltip>
+                                    <TooltipTrigger
+                                        asChild
+                                        className="hover:cursor-pointer"
+                                    >
+                                        <InputGroupButton
+                                            className="rounded-full"
+                                            size="icon-xs"
+                                        >
+                                            <InfoIcon />
+                                        </InputGroupButton>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {row.original.description}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </InputGroupAddon>
+                        </InputGroup>
                     );
                 },
             },
@@ -159,13 +195,11 @@ export default function PlaygroundConfigHeadersTable() {
                 cell: ({ row }) => {
                     const isDisabled = !row.original.enabled;
                     return (
-                        <input
+                        <Input
                             type="text"
                             value={row.original.value}
                             disabled={isDisabled}
-                            className={`w-full border px-2 py-1 ${
-                                isDisabled ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full`}
                             onChange={(e) =>
                                 handleInputChange(
                                     row.original.id,
@@ -252,14 +286,6 @@ export default function PlaygroundConfigHeadersTable() {
                             )}
                         </TableBody>
                     </Table>
-                </div>
-
-                <div className="text-sm text-muted-foreground">
-                    Active query params:{" "}
-                    {data
-                        .filter((d) => d.enabled)
-                        .map((d) => `${d.key}=${d.value}`)
-                        .join(", ")}
                 </div>
             </TabsContent>
         </Tabs>

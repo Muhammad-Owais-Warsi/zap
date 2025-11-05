@@ -41,6 +41,7 @@ export default function QueryParamsTable() {
             setData([]);
             return;
         }
+        console.log("QUERY", req.queryParams);
 
         const loaded = req.queryParams.map((obj, idx) => {
             const key = Object.keys(obj)[0];

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useTabsStore } from "@/store/tabs-store";
 import { useCwdStore } from "@/store/cwd-store";
+import { Book } from "lucide-react";
 
 export function WorkspaceSwitcher() {
     const [open, setOpen] = useState(false);
@@ -81,8 +82,11 @@ export function WorkspaceSwitcher() {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline">Open Dialog</Button>
+            <DialogTrigger asChild className="hover:cursor-pointer">
+                <Button className="w-full" variant="outline">
+                    <Book />
+                    Switch workspace
+                </Button>
             </DialogTrigger>
 
             <DialogContent
