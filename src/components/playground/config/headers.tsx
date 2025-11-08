@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useCwdStore } from "@/store/cwd-store";
 import { useZapRequest } from "@/store/request-store";
-import { InfoIcon, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -20,17 +20,6 @@ import {
     ColumnDef,
 } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
-import {
-    InputGroupAddon,
-    InputGroup,
-    InputGroupInput,
-    InputGroupButton,
-} from "@/components/ui/input-group";
-import {
-    TooltipTrigger,
-    Tooltip,
-    TooltipContent,
-} from "@/components/ui/tooltip";
 
 export interface HeadersRow {
     id: string;
@@ -44,7 +33,6 @@ export interface HeadersRow {
 export default function PlaygroundConfigHeadersTable() {
     const selectedFile = useCwdStore((state) => state.selectedFile);
     const getRequest = useZapRequest((state) => state.getRequest);
-    const setQueryParams = useZapRequest((state) => state.setQueryParams);
     const setHeaders = useZapRequest((state) => state.setHeaders);
 
     const [data, setData] = useState<HeadersRow[]>([]);
@@ -52,17 +40,18 @@ export default function PlaygroundConfigHeadersTable() {
     useEffect(() => {
         if (!selectedFile) return;
         const req = getRequest(selectedFile.path);
+
         if (!req?.headers) {
             setData([]);
             return;
         }
-        console.log("HEADERS", req.headers);
+
         const loaded = req.headers.map((h, idx) => ({
             id: idx.toString(),
             key: h.key,
             value: h.value,
             default: h.default,
-            description: h.description,
+            description: h.description ?? "",
             enabled: h.enabled ?? true,
         }));
 
@@ -72,7 +61,7 @@ export default function PlaygroundConfigHeadersTable() {
     const updateStore = useCallback(
         (rows: HeadersRow[]) => {
             const activeParams = rows
-                .filter((d) => d.key)
+                .filter((d) => d.key || d.value || d.description)
                 .map((d) => ({
                     key: d.key,
                     value: d.value,
@@ -82,14 +71,16 @@ export default function PlaygroundConfigHeadersTable() {
                 }));
 
             if (selectedFile?.path) {
+                console.log("HERE");
                 setHeaders(activeParams, selectedFile.path);
+                console.log("DONE");
             }
         },
         [selectedFile, setHeaders],
     );
 
     const handleInputChange = useCallback(
-        (id: string, field: "key" | "value", value: string) => {
+        (id: string, field: "key" | "value" | "description", value: string) => {
             setData((prev) => {
                 const updated = prev.map((row) =>
                     row.id === id ? { ...row, [field]: value } : row,
@@ -115,10 +106,12 @@ export default function PlaygroundConfigHeadersTable() {
     );
 
     const addRow = useCallback(() => {
-        const newRow: QueryParamRow = {
+        const newRow: HeadersRow = {
             id: Date.now().toString(),
             key: "",
             value: "",
+            default: false,
+            description: "",
             enabled: true,
         };
         setData((prev) => {
@@ -135,10 +128,6 @@ export default function PlaygroundConfigHeadersTable() {
                 header: ({ table }) => (
                     <Checkbox
                         checked={table.getIsAllRowsSelected()}
-                        indeterminate={
-                            table.getIsSomeRowsSelected() &&
-                            !table.getIsAllRowsSelected()
-                        }
                         onCheckedChange={(value) =>
                             table.toggleAllRowsSelected(!!value)
                         }
@@ -158,34 +147,20 @@ export default function PlaygroundConfigHeadersTable() {
                 accessorKey: "key",
                 header: "Key",
                 cell: ({ row }) => {
-                    const isDisabled = !row.original.enabled;
                     return (
-                        <InputGroup>
-                            <InputGroupInput
-                                type="text"
-                                value={row.original.key}
-                                disabled={row.original.default}
-                                className="w-full"
-                            />
-                            <InputGroupAddon align="inline-end">
-                                <Tooltip>
-                                    <TooltipTrigger
-                                        asChild
-                                        className="hover:cursor-pointer"
-                                    >
-                                        <InputGroupButton
-                                            className="rounded-full"
-                                            size="icon-xs"
-                                        >
-                                            <InfoIcon />
-                                        </InputGroupButton>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        {row.original.description}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </InputGroupAddon>
-                        </InputGroup>
+                        <Input
+                            type="text"
+                            value={row.original.key}
+                            disabled={row.original.default}
+                            placeholder="Header key"
+                            onChange={(e) =>
+                                handleInputChange(
+                                    row.original.id,
+                                    "key",
+                                    e.target.value,
+                                )
+                            }
+                        />
                     );
                 },
             },
@@ -193,13 +168,12 @@ export default function PlaygroundConfigHeadersTable() {
                 accessorKey: "value",
                 header: "Value",
                 cell: ({ row }) => {
-                    const isDisabled = !row.original.enabled;
                     return (
                         <Input
                             type="text"
                             value={row.original.value}
-                            disabled={isDisabled}
-                            className={`w-full`}
+                            disabled={!row.original.enabled}
+                            placeholder="Header value"
                             onChange={(e) =>
                                 handleInputChange(
                                     row.original.id,
@@ -212,11 +186,36 @@ export default function PlaygroundConfigHeadersTable() {
                 },
             },
             {
+                accessorKey: "description",
+                header: "Description",
+                cell: ({ row }) => {
+                    return (
+                        <Input
+                            type="text"
+                            value={row.original.description}
+                            disabled={row.original.default}
+                            placeholder={
+                                row.original.default
+                                    ? "Default header"
+                                    : "Add description"
+                            }
+                            onChange={(e) =>
+                                handleInputChange(
+                                    row.original.id,
+                                    "description",
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    );
+                },
+            },
+            {
                 id: "add",
                 header: () => (
                     <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon-sm"
                         onClick={addRow}
                         className="ml-auto"
                     >
@@ -262,7 +261,7 @@ export default function PlaygroundConfigHeadersTable() {
                                         colSpan={columns.length}
                                         className="text-center"
                                     >
-                                        No query params added
+                                        No headers added
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -291,9 +290,3 @@ export default function PlaygroundConfigHeadersTable() {
         </Tabs>
     );
 }
-
-// MAIN WOKR
-// add headers in request store
-// currently params is Record<string, string>[]
-// it should be {key, value, enabled}
-// similary in that way only store in file

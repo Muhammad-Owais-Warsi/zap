@@ -21,11 +21,17 @@ export default function TabBlock({
 
     async function handleTabClick() {
         if (activeTab?.path === path) return;
+
         const content = getRequest(path);
-        setSelectedFile(path, JSON.stringify(content));
+
         if (content) {
+            setSelectedFile(path, JSON.stringify(content));
             setRequest(content, path);
         }
+
+        // if content is undefined then readme_content is the only one we have to read
+        const readme_content = await getZapFileContent(path);
+        setSelectedFile(path, JSON.parse(readme_content.message));
         setActiveTab({ name, path });
     }
 
@@ -35,8 +41,8 @@ export default function TabBlock({
 
         const { activeTab: newActiveTab } = useTabsStore.getState();
         if (newActiveTab) {
-            const content = await getZapFileContent(newActiveTab.path);
-            setSelectedFile(newActiveTab.path, content.message);
+            const content = await getZapFileContent(newActiveTab?.path);
+            setSelectedFile(newActiveTab?.path, content.message);
         } else {
             setSelectedFile(null as unknown as string, "");
         }

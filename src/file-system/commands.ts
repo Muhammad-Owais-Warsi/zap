@@ -14,6 +14,7 @@ import {
     create_workspcae_config_content,
 } from "./fs-data";
 import { WorkspaceEntry } from "@/types/fs";
+import { invoke } from "@tauri-apps/api/core";
 
 const BASE_DIR = BaseDirectory.AppData;
 
@@ -155,6 +156,12 @@ async function renameFolder(path: string, newName: string) {
     });
 }
 
+async function writeFile(path: string, content: string) {
+    const stringified_content = JSON.stringify(content);
+
+    await writeTextFile(path, stringified_content, { baseDir: BASE_DIR });
+}
+
 export {
     createWorkspace,
     createDirectory,
@@ -165,4 +172,5 @@ export {
     moveFile,
     renameFile,
     renameFolder,
+    writeFile,
 };

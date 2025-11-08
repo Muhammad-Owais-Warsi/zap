@@ -226,10 +226,12 @@ function NavMainContent({
 
     const handleFolderClick = async (path: string) => {
         const README_PATH = `${path}/README.md`;
+
         if (selectedFile?.path === README_PATH) return;
         try {
             const content = await getZapFileContent(README_PATH);
             setSelectedFile(README_PATH, content.message);
+            setActiveTab({ name: "README.md", path: README_PATH });
         } catch (err) {
             console.log("No README found for folder:", path);
         }

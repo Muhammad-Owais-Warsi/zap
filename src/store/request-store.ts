@@ -134,8 +134,8 @@ export const useZapRequest = create<ZapRequestStore>()(
                                   ...req,
                                   networkConfig: req.networkConfig.map(
                                       (config) =>
-                                          config.hasOwnProperty(key)
-                                              ? { ...config, [key]: value }
+                                          config.key === key
+                                              ? { ...config, value }
                                               : config,
                                   ),
                               }
@@ -146,7 +146,7 @@ export const useZapRequest = create<ZapRequestStore>()(
             setRequest: (request, path) =>
                 set((state) => {
                     const content = request?.content ?? request;
-
+                    console.log("CONTENT", content);
                     return {
                         requests: state.requests.map((req) =>
                             req.path === path

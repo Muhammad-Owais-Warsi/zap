@@ -19,6 +19,7 @@ import {
     useReactTable,
     ColumnDef,
 } from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
 
 export interface QueryParamRow {
     id: string;
@@ -41,21 +42,24 @@ export default function QueryParamsTable() {
             setData([]);
             return;
         }
-        console.log("QUERY", req.queryParams);
 
-        const loaded = req.queryParams.map((obj, idx) => {
-            const key = Object.keys(obj)[0];
-            const value = obj[key];
-            return { id: idx.toString(), key, value, enabled: true };
-        });
+        const loaded = req.queryParams.map((h, idx) => ({
+            id: idx.toString(),
+            key: h.key,
+            value: h.value,
+            enabled: h.enabled ?? true,
+        }));
+
         setData(loaded);
     }, [selectedFile, getRequest]);
 
     const updateStore = useCallback(
         (rows: QueryParamRow[]) => {
-            const activeParams: Record<string, string>[] = rows
-                .filter((d) => d.enabled && d.key)
-                .map((d) => ({ [d.key]: d.value }));
+            const activeParams = rows.map((d) => ({
+                key: d.key,
+                value: d.value,
+                enabled: d.enabled,
+            }));
 
             if (selectedFile?.path) {
                 setQueryParams(activeParams, selectedFile.path);
@@ -111,10 +115,10 @@ export default function QueryParamsTable() {
                 header: ({ table }) => (
                     <Checkbox
                         checked={table.getIsAllRowsSelected()}
-                        indeterminate={
-                            table.getIsSomeRowsSelected() &&
-                            !table.getIsAllRowsSelected()
-                        }
+                        // indeterminate={
+                        //     table.getIsSomeRowsSelected() &&
+                        //     !table.getIsAllRowsSelected()
+                        // }
                         onCheckedChange={(value) =>
                             table.toggleAllRowsSelected(!!value)
                         }
@@ -136,13 +140,11 @@ export default function QueryParamsTable() {
                 cell: ({ row }) => {
                     const isDisabled = !row.original.enabled;
                     return (
-                        <input
+                        <Input
                             type="text"
                             value={row.original.key}
                             disabled={isDisabled}
-                            className={`w-full border px-2 py-1 ${
-                                isDisabled ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full border px-2 py-1 `}
                             onChange={(e) =>
                                 handleInputChange(
                                     row.original.id,
@@ -160,13 +162,11 @@ export default function QueryParamsTable() {
                 cell: ({ row }) => {
                     const isDisabled = !row.original.enabled;
                     return (
-                        <input
+                        <Input
                             type="text"
                             value={row.original.value}
                             disabled={isDisabled}
-                            className={`w-full border px-2 py-1 ${
-                                isDisabled ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full border px-2 py-1 `}
                             onChange={(e) =>
                                 handleInputChange(
                                     row.original.id,
@@ -183,11 +183,11 @@ export default function QueryParamsTable() {
                 header: () => (
                     <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon-sm"
                         onClick={addRow}
                         className="ml-auto"
                     >
-                        <Plus className="h-4 w-4" />
+                        <Plus />
                     </Button>
                 ),
                 cell: () => null,
@@ -253,14 +253,6 @@ export default function QueryParamsTable() {
                             )}
                         </TableBody>
                     </Table>
-                </div>
-
-                <div className="text-sm text-muted-foreground">
-                    Active query params:{" "}
-                    {data
-                        .filter((d) => d.enabled)
-                        .map((d) => `${d.key}=${d.value}`)
-                        .join(", ")}
                 </div>
             </TabsContent>
         </Tabs>

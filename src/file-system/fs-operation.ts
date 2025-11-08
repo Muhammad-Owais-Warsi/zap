@@ -9,6 +9,7 @@ import {
     moveFile,
     renameFile,
     renameFolder,
+    writeFile,
 } from "./commands";
 
 export async function createZapRequest(
@@ -156,6 +157,24 @@ export async function renameZapFolder(
         return {
             type: "success",
             message: "File renamed successfully",
+        };
+    } catch (error: any) {
+        return {
+            type: "error",
+            message: error.message,
+        };
+    }
+}
+
+export async function writeZapFile(
+    path: string,
+    content: string,
+): Promise<ZapApiResponse> {
+    try {
+        await writeFile(path, content);
+        return {
+            type: "success",
+            message: "File saved successfully",
         };
     } catch (error: any) {
         return {

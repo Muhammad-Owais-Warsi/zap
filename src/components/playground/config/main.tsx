@@ -2,6 +2,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PlaygroundConfigQueryParamsTable from "./query-params";
 import { Separator } from "@/components/ui/separator";
 import PlaygroundConfigHeadersTable from "./headers";
+import PlaygroundConfigSettings from "./settings";
+import PlaygroundConfigAuth from "./auth";
 
 export default function PlaygroundMainConfig() {
     return (
@@ -23,7 +25,7 @@ export default function PlaygroundMainConfig() {
                     <PlaygroundConfigQueryParamsTable />
                 </TabsContent>
                 <TabsContent value="auth">
-                    Change your password here.
+                    <PlaygroundConfigAuth />
                 </TabsContent>
                 <TabsContent value="headers">
                     <PlaygroundConfigHeadersTable />
@@ -32,7 +34,7 @@ export default function PlaygroundMainConfig() {
                     Change your password here.
                 </TabsContent>
                 <TabsContent value="settings">
-                    Change your password here.
+                    <PlaygroundConfigSettings />
                 </TabsContent>
             </Tabs>
         </div>

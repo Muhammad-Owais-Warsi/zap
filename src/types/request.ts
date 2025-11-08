@@ -111,7 +111,7 @@ export type ZapCookie = {
 export type ZapQueryParams = {
     key: string;
     value: string;
-    enabled?: true;
+    enabled?: boolean;
 };
 
 export type ZapNetworkConfigItem<T> = {
