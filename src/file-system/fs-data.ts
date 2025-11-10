@@ -6,10 +6,12 @@ export function create_workspcae_config_content(name: string, path: string) {
         name: name,
         path: path,
         // children: [],
-        environments: [],
+        // variables: [],
+        environments: { default: [] },
+        // variables: [],
         cookieJar: [],
     };
-
+    // environments: {"default": ZapVariables[], "user_defined": ZapVariables[]}
     return CREATE_WORKSPACE_CONFIG_CONTENT;
 }
 
@@ -18,7 +20,7 @@ export function create_folder_config_content(name: string, path: string) {
         name: name,
         path: path,
         type: "folder",
-        variables: [],
+        // variables: [],
     };
 
     return CREATE_FOLDER_CONFIG_CONTENT;
@@ -50,8 +52,7 @@ export function create_file_config_content(name: string, path: string) {
 }
 
 export function create_readme_content(name: string) {
-    return `
-    ## Welcome to Zap
+    return `## Welcome to Zap
     This is folder ${name}
   `;
 }

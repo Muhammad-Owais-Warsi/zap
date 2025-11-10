@@ -24,7 +24,7 @@ export default function Render() {
                     <PlaygroundTabs />
                 </div>
 
-                {selectedFile?.path.includes("README.md") ? (
+                {selectedFile?.path?.includes("README.md") ? (
                     <div className="p-6 overflow-auto">
                         <MarkdownEditor
                             initialContent={cleaned_markdown}
@@ -55,5 +55,3 @@ export default function Render() {
         </div>
     );
 }
-
-

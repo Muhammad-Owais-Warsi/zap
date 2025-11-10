@@ -29,6 +29,7 @@ import { Button } from "../ui/button";
 import { IGNORED_FILES } from "@/lib/ignored-files";
 import { useZapRequest } from "@/store/request-store";
 import MethodBadge from "../theme/method-badge";
+import { Folder, File } from "lucide-react";
 
 type DragItem = { path: string; isDir: boolean; name: string };
 
@@ -247,7 +248,7 @@ function NavMainContent({
             triggerWorkspaceUpdate();
             setSelectedFile(path, content.message);
             setRequest(JSON.parse(content.message), path);
-            setActiveTab({ name: fileName, path });
+            setActiveTab({ name: `${fileName}.json`, path });
         } catch (err) {
             console.error(err);
         }
@@ -327,21 +328,27 @@ function NavMainContent({
 
     return (
         <SidebarGroup>
-            <SidebarGroupLabel>{workspace}</SidebarGroupLabel>
+            <SidebarGroupLabel>
+                <div className="flex items-center justify-between w-full">
+                    <span>{workspace}</span>
+                </div>
+            </SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) =>
-                    item.isDir ? (
-                        renderFolder(item)
-                    ) : (
-                        <DraggableFile
-                            key={item.path}
-                            file={item}
-                            handleFileClick={handleFileClick}
-                            setSourceTarget={setSourceTarget}
-                            triggerWorkspaceUpdate={triggerWorkspaceUpdate}
-                        />
-                    ),
-                )}
+                {items
+                    .filter((item) => !IGNORED_FILES.includes(item.name))
+                    .map((item) =>
+                        item.isDir ? (
+                            renderFolder(item)
+                        ) : (
+                            <DraggableFile
+                                key={item.path}
+                                file={item}
+                                handleFileClick={handleFileClick}
+                                setSourceTarget={setSourceTarget}
+                                triggerWorkspaceUpdate={triggerWorkspaceUpdate}
+                            />
+                        ),
+                    )}
             </SidebarMenu>
             {/*remove this*/}
             {sourceTarget.source && sourceTarget.target && (

@@ -89,13 +89,10 @@ export type ZapVariables = {
     key: string;
     value: string;
     rootDir?: string;
-    scope: "worksapce" | "folder";
+    scope: "workspace" | "folder";
 };
 
-export type ZapEnvironment = {
-    environment: "default" | string;
-    variables: ZapVariables[] | [];
-};
+export type ZapEnvironment = Record<string, ZapVariables[]>;
 
 export type ZapCookie = {
     key: string;

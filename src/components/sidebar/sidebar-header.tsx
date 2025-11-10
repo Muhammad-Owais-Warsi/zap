@@ -7,9 +7,15 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useCwdStore } from "@/store/cwd-store";
 import { useState } from "react";
-import { Folder, File } from "lucide-react";
+import { Folder, File, ImportIcon } from "lucide-react";
 import { useTabsStore } from "@/store/tabs-store";
 import { WorkspaceSwitcher } from "../workspace/switcher";
+import { Plus } from "lucide-react";
+import { Separator } from "../ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { SidebarSeparator } from "../ui/sidebar";
+import CreateFolder from "../fs/folder";
+import CreateRequest from "../fs/file";
 
 export default function SideHeaders({ workspace }: { workspace: string }) {
     const updateName = useCwdStore((state) => state.updateName);
@@ -48,22 +54,43 @@ export default function SideHeaders({ workspace }: { workspace: string }) {
     };
 
     return (
-        <div className="p-2 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-                {/*<Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCreateWorkspace}
-                    className="flex items-center gap-2"
-                >
-                    <Plus className="w-4 h-4" />
-                    New Workspace
-                </Button>*/}
-
+        <div className="">
+            <div className="flex items-center justify-start gap-2">
                 <WorkspaceSwitcher />
+                <Tooltip>
+                    <TooltipTrigger>
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={handleCreateWorkspace}
+                            className="flex items-center gap-2 hover:cursor-pointer"
+                        >
+                            <Plus />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>New Workspace</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <TooltipTrigger>
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={handleCreateWorkspace}
+                            className="flex items-center gap-2 hover:cursor-pointer"
+                        >
+                            <ImportIcon />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Import Request</TooltipContent>
+                </Tooltip>
+                <CreateFolder />
+                <CreateRequest />
             </div>
 
-            <div className="space-y-1">
+            <div className="-mx-2 border-t border-sidebar-border mt-1" />
+
+            {/*<div className="space-y-1">
                 {!showCreateFolder ? (
                     <Button
                         variant="ghost"
@@ -157,7 +184,12 @@ export default function SideHeaders({ workspace }: { workspace: string }) {
                         </Button>
                     </div>
                 )}
-            </div>
+            </div>*/}
         </div>
     );
 }
+
+//TODO
+// add folder and file create func on sidebar icon coz i moved from headers
+// work on import
+// then setting env

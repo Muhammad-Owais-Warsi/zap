@@ -5,9 +5,14 @@ import { Separator } from "@/components/ui/separator";
 import { useCwdStore } from "../../store/cwd-store";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useTabsStore } from "@/store/tabs-store";
+import {
+    createZapWorkspace,
+    getZapFileContent,
+} from "@/file-system/fs-operation";
 
 export default function WorkspaceSelector() {
     const name = useCwdStore((state) => state.name);
+    const setWorkspaceConfig = useCwdStore((state) => state.setWorkspaceConfig);
     const updateName = useCwdStore((state) => state.updateName);
     const setWorkspaces = useCwdStore((state) => state.setWorkspaces);
     const resetCwdStore = useCwdStore((state) => state.resetCwdStore);
@@ -19,10 +24,23 @@ export default function WorkspaceSelector() {
         setWorkspaces(workspaces);
     }, [workspaces]);
 
-    const handleSelect = (workspace: string) => updateName(workspace);
+    const handleSelect = async (workspace: string) => {
+        const content = await getZapFileContent(
+            `${workspace}/workspace_config.json`,
+        );
+        // console.log(content);
+        setWorkspaceConfig(JSON.parse(content.message));
+        updateName(workspace);
+    };
 
-    const handleAddWorkspace = () => {
+    // workspace config setting logic to local storage
+    const handleAddWorkspace = async () => {
         if (!newWorkspace.trim()) return;
+        await createZapWorkspace(newWorkspace);
+        const content = await getZapFileContent(
+            `${newWorkspace}/workspace_config.json`,
+        );
+        setWorkspaceConfig(JSON.parse(content.message));
         updateName(newWorkspace);
         setNewWorkspace("");
         resetCwdStore();

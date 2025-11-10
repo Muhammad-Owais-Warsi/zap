@@ -11,20 +11,22 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Settings } from "lucide-react";
+import EnvironmentSettings from "../environment/settings";
 
 const SETTINGS_SECTIONS = [
     { name: "General", description: "Basic application preferences." },
     { name: "Appearance", description: "Change theme and layout options." },
     {
-        name: "Workspaces",
+        name: "Environment",
         description: "Manage and switch between workspaces.",
     },
-    { name: "Shortcuts", description: "Customize keyboard shortcuts." },
+    { name: "Environment", description: "Customize keyboard shortcuts." },
     { name: "Advanced", description: "Experimental or developer options." },
 ];
 
 export default function SidebarSettings() {
     const [open, setOpen] = useState(false);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedIndex, setSelectedIndex] = useState(0);
 
     useEffect(() => {
@@ -45,14 +47,17 @@ export default function SidebarSettings() {
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "ArrowDown") {
             e.preventDefault();
-            setSelectedIndex((prev) => (prev + 1) % SETTINGS_SECTIONS.length);
+            setCurrentIndex((prev) => (prev + 1) % SETTINGS_SECTIONS.length);
         } else if (e.key === "ArrowUp") {
             e.preventDefault();
-            setSelectedIndex((prev) =>
+            setCurrentIndex((prev) =>
                 prev === 0 ? SETTINGS_SECTIONS.length - 1 : prev - 1,
             );
         } else if (e.key === "Escape") {
             setOpen(false);
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            setSelectedIndex(currentIndex);
         }
     };
 
@@ -77,9 +82,8 @@ export default function SidebarSettings() {
                         <div
                             key={item.name}
                             onClick={() => setSelectedIndex(idx)}
-                            onMouseEnter={() => setSelectedIndex(idx)}
-                            className={`p-2 rounded-md cursor-pointer text-sm transition-colors ${
-                                idx === selectedIndex
+                            className={`p-2 rounded-md cursor-pointer text-sm ${
+                                idx === currentIndex
                                     ? "bg-primary text-primary-foreground"
                                     : "hover:bg-muted"
                             }`}
@@ -89,14 +93,13 @@ export default function SidebarSettings() {
                     ))}
                 </div>
 
-                {/* Make this column a vertical flex container so the footer can be pushed to the bottom */}
                 <div className="flex-1 p-6 flex flex-col">
                     <DialogHeader>
                         <DialogTitle>
                             {SETTINGS_SECTIONS[selectedIndex].name}
                         </DialogTitle>
                         <DialogDescription>
-                            {SETTINGS_SECTIONS[selectedIndex].description}
+                            {/*{SETTINGS_SECTIONS[selectedIndex].description}*/}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -135,11 +138,7 @@ export default function SidebarSettings() {
 
                         {selectedIndex === 3 && (
                             <div>
-                                <h4 className="font-medium mb-2">Shortcuts</h4>
-                                <p>
-                                    Customize keyboard shortcuts for faster
-                                    workflows.
-                                </p>
+                                <EnvironmentSettings />
                             </div>
                         )}
 

@@ -37,7 +37,7 @@ export default function PlaygroundTabs() {
     }
 
     return (
-        <div className="flex items-center border-b border-border bg-background/80 backdrop-blur-sm h-10">
+        <div className="flex items-center border-b border-border bg-background/80 backdrop-blur-sm h-[44.5px]">
             <ScrollArea className="flex-1 whitespace-nowrap w-2.5">
                 <div className="flex items-center ">
                     {tabs.map((tab, idx) => (

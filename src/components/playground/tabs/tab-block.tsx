@@ -53,7 +53,7 @@ export default function TabBlock({
     return (
         <div
             onClick={handleTabClick}
-            className={`group inline-flex items-center gap-2 px-4 py-2 border-b-2 cursor-pointer select-none h-10
+            className={`group inline-flex items-center gap-2 px-4 py-2 border-b-2 cursor-pointer select-none h-[44.5px]
               ${
                   isActive
                       ? "border-primary text-primary font-medium bg-background"

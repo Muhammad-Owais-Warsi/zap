@@ -25,8 +25,8 @@ struct Params {
 struct Payload {
     method: Method,
     url: string,
-    headers: Headers,
-    params: Params,
+    headers: Vec<Headers>,
+    params: Vec<Params>,
 }
 
 // fn make_request(payload) {
