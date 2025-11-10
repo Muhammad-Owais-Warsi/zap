@@ -1,0 +1,200 @@
+/* Essential editor theming using App.css variables */
+
+/* Main editor container */
+.prism-code-editor {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 14px;
+    line-height: 1.5;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Line numbers gutter */
+.prism-code-editor .prism-line-numbers {
+    background: var(--muted) !important;
+    color: var(--muted-foreground) !important;
+    border-right: 1px solid var(--border) !important;
+    font-family: var(--font-mono) !important;
+    user-select: none !important;
+    border-left: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+/* Editor content area */
+.prism-code-editor .prism-editor {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+    font-family: var(--font-mono) !important;
+}
+
+/* Textarea (input area) */
+.prism-code-editor .prism-editor__textarea {
+    background: transparent !important;
+    color: var(--foreground) !important;
+    font-family: var(--font-mono) !important;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Highlighted code container */
+.prism-code-editor .prism-highlight {
+    background: transparent !important;
+    font-family: var(--font-mono) !important;
+}
+
+/* JSON syntax highlighting */
+.prism-code-editor .token.property {
+    color: var(--chart-1) !important;
+}
+
+.prism-code-editor .token.string {
+    color: var(--chart-2) !important;
+}
+
+.prism-code-editor .token.number {
+    color: var(--chart-3) !important;
+}
+
+.prism-code-editor .token.boolean {
+    color: var(--chart-4) !important;
+}
+
+.prism-code-editor .token.null,
+.prism-code-editor .token.undefined {
+    color: var(--muted-foreground) !important;
+}
+
+.prism-code-editor .token.punctuation {
+    color: var(--foreground) !important;
+}
+
+/* Text selection */
+.prism-code-editor ::selection {
+    background: var(--accent) !important;
+    opacity: 0.3;
+}
+
+/* Scrollbars */
+.prism-code-editor ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.prism-code-editor ::-webkit-scrollbar-track {
+    background: var(--muted);
+}
+
+.prism-code-editor ::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 4px;
+}
+
+.prism-code-editor ::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+}
+
+/* Remove any unwanted borders or outlines */
+.prism-code-editor,
+.prism-code-editor *,
+.prism-code-editor *:focus {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Force remove any default theme borders */
+.prism-code-editor .token-line {
+    border: none !important;
+}
+
+.prism-code-editor .prism-highlight-code-line {
+    border: none !important;
+}
+
+/* Override any prism theme borders */
+.prism-code-editor .line-numbers .line-numbers-rows {
+    border-right: 1px solid var(--border) !important;
+    border-left: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+/* Dark theme border fix */
+.dark .prism-code-editor,
+.dark .prism-code-editor *,
+.dark .prism-code-editor .prism-line-numbers,
+.dark .prism-code-editor .token-line {
+    border-color: var(--border) !important;
+}
+
+/* Ensure consistent font family */
+.prism-code-editor .token {
+    font-family: var(--font-mono) !important;
+}
+
+/* Dark theme specific overrides */
+.dark .prism-code-editor .prism-line-numbers {
+    border-right: 1px solid var(--border) !important;
+}
+
+/* Light theme specific overrides */
+:not(.dark) .prism-code-editor .prism-line-numbers {
+    border-right: 1px solid var(--border) !important;
+}
+
+/* Instant theme switching without lag */
+.prism-theme-github-dark .prism-code-editor {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+.prism-theme-github-light .prism-code-editor {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+.prism-theme-github-dark .prism-code-editor .prism-line-numbers {
+    background: var(--muted) !important;
+    color: var(--muted-foreground) !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+.prism-theme-github-light .prism-code-editor .prism-line-numbers {
+    background: var(--muted) !important;
+    color: var(--muted-foreground) !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+.prism-theme-github-dark .prism-code-editor .prism-editor {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+.prism-theme-github-light .prism-code-editor .prism-editor {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+.prism-theme-github-dark .prism-code-editor .prism-editor__textarea {
+    background: transparent !important;
+    color: var(--foreground) !important;
+}
+
+.prism-theme-github-light .prism-code-editor .prism-editor__textarea {
+    background: transparent !important;
+    color: var(--foreground) !important;
+}
+
+/* Smooth transition for theme changes */
+.prism-code-editor,
+.prism-code-editor *,
+.prism-code-editor .prism-line-numbers,
+.prism-code-editor .prism-editor,
+.prism-code-editor .prism-editor__textarea {
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease !important;
+}

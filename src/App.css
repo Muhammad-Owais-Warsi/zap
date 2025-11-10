@@ -196,3 +196,19 @@ body {
         @apply bg-background text-foreground;
     }
 }
+
+/* ✅ Prism editor dark mode fixes */
+.dark .prism-editor .indent-guide {
+    background-color: rgba(
+        255,
+        255,
+        255,
+        0.08
+    ) !important; /* softer for dark */
+}
+
+.dark .prism-editor .gutter,
+.dark .prism-editor .line-numbers {
+    background-color: transparent !important; /* remove white background */
+    border-right-color: rgba(255, 255, 255, 0.1) !important;
+}

@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import PlaygroundConfigHeadersTable from "./headers";
 import PlaygroundConfigSettings from "./settings";
 import PlaygroundConfigAuth from "./auth";
+import JsonEditor from "@/components/editor/editor";
 
 export default function PlaygroundMainConfig() {
     return (
@@ -31,7 +32,7 @@ export default function PlaygroundMainConfig() {
                     <PlaygroundConfigHeadersTable />
                 </TabsContent>
                 <TabsContent value="body">
-                    Change your password here.
+                    <JsonEditor />
                 </TabsContent>
                 <TabsContent value="settings">
                     <PlaygroundConfigSettings />
