@@ -36,8 +36,16 @@ export function create_file_config_content(name: string, path: string) {
             method: "GET",
             headers: DEFAULT_HEADERS,
             body: {
-                type: "none",
-                content: undefined,
+                none: null,
+                "form-data": [],
+                "x-www-form-urlencoded": [],
+                raw: {
+                    text: "",
+                    json: "",
+                    javascript: "",
+                    html: "",
+                    xml: "",
+                },
             },
             params: [],
             auth: {

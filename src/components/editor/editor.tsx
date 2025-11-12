@@ -2,26 +2,31 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { basicEditor } from "prism-code-editor/setups";
 
 import "prism-code-editor/prism/languages/json";
+import "prism-code-editor/prism/languages/javascript";
+import "prism-code-editor/prism/languages/markup"; // covers HTML + XML
+// import "prism-code-editor/prism/languages/plaintext";
 
 import "prism-code-editor/themes/github-dark.css";
 import "prism-code-editor/themes/github-light.css";
 
 import { Badge } from "../ui/badge";
-import { CircleAlert, CircleCheck, Dot } from "lucide-react";
+import { CircleAlert, CircleCheck } from "lucide-react";
 import { useTheme } from "../theme/theme-provider";
 
 type JsonEditorProps = {
-    value?: string;
+    value: string | null;
     onChange?: (value: string) => void;
     height?: string;
-    readOnly?: boolean;
+    // readOnly?: boolean;
+    language: string;
 };
 
 export default function JsonEditor({
     value = "",
     onChange,
     height = "400px",
-    readOnly = false,
+    // readOnly = false,
+    language,
 }: JsonEditorProps) {
     const editorRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -30,29 +35,38 @@ export default function JsonEditor({
 
     const { theme } = useTheme();
 
-    const validateJson = useCallback((code: string) => {
-        try {
-            if (code.trim()) JSON.parse(code);
-            setIsValid(true);
-        } catch {
-            setIsValid(false);
-        }
-    }, []);
+    const validateJson = useCallback(
+        (code: string) => {
+            if (language !== "json") {
+                setIsValid(true);
+                return;
+            }
+            try {
+                if (code.trim()) JSON.parse(code);
+                setIsValid(true);
+            } catch {
+                setIsValid(false);
+            }
+        },
+        [language],
+    );
 
     useEffect(() => {
+        console.log("editor", value);
         if (!containerRef.current || isInitializedRef.current) return;
 
         theme === "dark" ? "github-dark" : "github-light";
 
         const editor = basicEditor(containerRef.current, {
-            language: "json",
+            language,
             value: value || "",
             lineNumbers: true,
-            readOnly,
+            // readOnly,
             wordWrap: false,
             tabSize: 2,
             insertSpaces: true,
             autoIndent: true,
+            // theme: theme,
         });
 
         editor.setOptions({
@@ -62,7 +76,9 @@ export default function JsonEditor({
         editorRef.current = editor;
         isInitializedRef.current = true;
 
+        let isInitializing = true;
         const handleInput = () => {
+            if (isInitializing) return;
             const code = editor.value;
             validateJson(code);
             onChange?.(code);
@@ -71,18 +87,29 @@ export default function JsonEditor({
         editor.on("update", handleInput);
         validateJson(editor.value);
 
+        setTimeout(() => {
+            isInitializing = false;
+        }, 0);
+
         return () => {
             editor?.remove?.();
             editorRef.current = null;
             isInitializedRef.current = false;
         };
+    }, [language]);
+
+    useEffect(() => {
+        if (!editorRef.current) return;
+        const selectedTheme = theme === "dark" ? "github-dark" : "github-light";
+        editorRef.current.setOptions({ theme: selectedTheme });
     }, [theme]);
 
     useEffect(() => {
         if (editorRef.current && isInitializedRef.current) {
             const currentValue = editorRef.current.value;
             if (currentValue !== value) {
-                editorRef.current.value = value || "";
+                // Use the correct method to set value instead of direct assignment
+                editorRef.current.update(value || "");
                 validateJson(value || "");
             }
         }
@@ -91,30 +118,32 @@ export default function JsonEditor({
     return (
         <div className="w-full">
             <div className="flex justify-end mb-2">
-                {isValid ? (
-                    <Badge
-                        variant="secondary"
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-green-600 dark:text-green-400 bg-green-600/10 dark:bg-green-500/10 border-none font-medium"
-                    >
-                        <CircleCheck className="h-3.5 w-3.5 text-green-500 dark:text-green-400" />
-                        Valid
-                    </Badge>
-                ) : (
-                    <Badge
-                        variant="secondary"
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-red-600 dark:text-red-400 bg-red-600/10 dark:bg-red-500/10 border-none font-medium"
-                    >
-                        <CircleAlert className="h-3.5 w-3.5 text-red-500 dark:text-red-400" />
-                        Invalid
-                    </Badge>
-                )}
+                {language === "json" ? (
+                    isValid ? (
+                        <Badge
+                            variant="secondary"
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-green-600 bg-green-600/10 border-none font-medium"
+                        >
+                            <CircleCheck className="h-3.5 w-3.5 text-green-600" />
+                            Valid
+                        </Badge>
+                    ) : (
+                        <Badge
+                            variant="secondary"
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-red-600 bg-red-600/10 border-none font-medium"
+                        >
+                            <CircleAlert className="h-3.5 w-3.5 text-red-600" />
+                            Invalid
+                        </Badge>
+                    )
+                ) : null}
             </div>
 
             <div className="bg-card rounded-lg  border border-border overflow-hidden">
                 <div className="bg-background relative">
                     <div
                         ref={containerRef}
-                        className="w-full dark:bg-black light:bg-white"
+                        className="w-full "
                         style={{
                             height,
                             fontSize: "16px",

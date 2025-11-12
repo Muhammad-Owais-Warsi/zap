@@ -38,19 +38,34 @@ export type ZapApiKeyAuth = {
 };
 
 export type ZapBody = {
-    type: ZapBodyType;
-    content?: ZapBodyContent;
+    none: null;
+    "form-data": ZapFormDataBodyType[];
+    "x-www-form-urlencoded": ZapFormUrlEncodedBodyType[];
+    raw: Record<ZapRawBodyTypeLanguage, string>;
 };
+
+// export type ZapBody = {
+//     type: ZapBodyType;
+//     content: ZapBodyContent | null;
+// };
 
 export type ZapBodyContent =
-    | ZapRawBodyType
-    | ZapFormDataBodyType
-    | ZapFormUrlEncodedBodyType;
+    | string
+    | ZapFormDataBodyType[]
+    | ZapFormUrlEncodedBodyType[]
+    | null;
 
-export type ZapRawBodyType = {
-    language: "text" | "json" | "html" | "javascript" | "xml";
-    text: string;
-};
+export type ZapRawBodyTypeLanguage =
+    | "text"
+    | "json"
+    | "html"
+    | "javascript"
+    | "xml";
+
+// export type ZapRawBodyType = {
+//     language: ZapRawBodyTypeLanguage;
+//     text: string;
+// };
 
 export type ZapFormDataBodyType = {
     key: string;
@@ -61,6 +76,7 @@ export type ZapFormDataBodyType = {
 export type ZapFormUrlEncodedBodyType = {
     key: string;
     value: string;
+    description: string;
     enabled?: boolean;
 };
 

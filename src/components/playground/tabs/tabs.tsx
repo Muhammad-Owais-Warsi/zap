@@ -50,7 +50,7 @@ export default function PlaygroundTabs() {
             <div className="border-l border-border shrink-0">
                 <Button
                     variant="ghost"
-                    className="rounded-none h-10 px-3 flex items-center gap-2 hover:cursor-pointer"
+                    className="rounded-none h-[44.5px] px-3 flex items-center gap-2 hover:cursor-pointer"
                     onClick={handleNewTab}
                 >
                     <Plus className="h-4 w-4" />

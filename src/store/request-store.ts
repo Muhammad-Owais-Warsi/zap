@@ -1,8 +1,48 @@
-import { ZapAuth, ZapBody, ZapHeaders, ZapQueryParams } from "@/types/request";
+import {
+    ZapAuth,
+    ZapBody,
+    ZapBodyContent,
+    ZapBodyType,
+    ZapFormDataBodyType,
+    ZapFormUrlEncodedBodyType,
+    ZapHeaders,
+    ZapQueryParams,
+    ZapRawBodyTypeLanguage,
+    // ZapRawBodyType,
+} from "@/types/request";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { NETWORK_CONFIG } from "@/file-system/fs-data";
 import { ZapFileConfig } from "@/types/fs";
+
+// we are changing body:ZapBody coz on tab chnage the data is lost
+// even on body type change, not a good experience and it will also make
+// the further handling of body difficult like storing multiple types of body
+// even though only one is sent.
+//
+// First Intention was to chnage it to body:ZapBody[] but I beleive this is not very optimized
+// coz bodyType: raw is also nested with languages so storing that is difficult other than this
+// form type fileds are array and not single key value
+//
+// but ervything was fine until few changes
+// but another issue arises that is we can only store single bodytype in actual file so storing multiple headersis of
+// no use, so we need to change the actual body type
+
+// type RequestRawBodyType = {
+//     current: ZapRawBodyType;
+//     text: string;
+//     json: string;
+//     html: string;
+//     xml: string;
+//     javascript: string;
+// };
+
+// HERE CANT HANDLE RAW TYPE...CHECK THIS
+type ZapRequestBody = {
+    current: ZapBodyType;
+    language?: ZapRawBodyTypeLanguage;
+    body: ZapBody;
+};
 
 interface ZapStoreRequest {
     isSaved: boolean;
@@ -11,7 +51,7 @@ interface ZapStoreRequest {
     url: string | null;
     method: string | "GET";
     auth: ZapAuth | null;
-    body: ZapBody | null;
+    body: ZapRequestBody | null;
     headers: ZapHeaders[] | null;
     queryParams: ZapQueryParams[] | null;
     networkConfig: typeof NETWORK_CONFIG;
@@ -22,7 +62,17 @@ interface ZapRequestStore {
     setPathAndName: (path: string, name: string) => void;
     getRequest: (path: string) => ZapStoreRequest | undefined;
     setAuth: (auth: ZapAuth, path: string) => void;
-    setBody: (body: ZapBody, path: string) => void;
+    setCurrentBody: (
+        type: ZapBodyType,
+        path: string,
+        language?: ZapRawBodyTypeLanguage,
+    ) => void;
+    setBody: (
+        type: ZapBodyType,
+        path: string,
+        body?: ZapBodyContent,
+        language?: ZapRawBodyTypeLanguage,
+    ) => void;
     setHeaders: (headers: ZapHeaders[], path: string) => void;
     setMethod: (method: string, path: string) => void;
     setUrl: (url: string, path: string) => void;
@@ -34,6 +84,19 @@ interface ZapRequestStore {
     ) => void;
     markSaved: (path: string) => void;
 }
+
+const FALLBACK_BODY = {
+    none: null,
+    "form-data": [],
+    "x-www-form-urlencoded": [],
+    raw: {
+        text: "",
+        json: "",
+        javascript: "",
+        html: "",
+        xml: "",
+    },
+};
 
 export const useZapRequest = create<ZapRequestStore>()(
     persist(
@@ -90,11 +153,56 @@ export const useZapRequest = create<ZapRequestStore>()(
                     ),
                 })),
 
-            setBody: (body, path) =>
+            setCurrentBody: (type, path, language) =>
                 set((state) => ({
                     requests: state.requests.map((req) =>
                         req.path === path
-                            ? { ...req, body, isSaved: false }
+                            ? {
+                                  ...req,
+                                  body: req.body
+                                      ? {
+                                            ...req.body,
+                                            current: type,
+                                            language: language,
+                                        }
+                                      : {
+                                            current: type,
+                                            language: language,
+                                            body: FALLBACK_BODY as ZapBody,
+                                        }, // fallback if body null
+                                  isSaved: false,
+                              }
+                            : req,
+                    ),
+                })),
+
+            setBody: (type, path, body, language) =>
+                set((state) => ({
+                    requests: state.requests.map((req) =>
+                        req.path === path
+                            ? {
+                                  ...req,
+                                  body: {
+                                      // Handle case when req.body is null
+                                      current: type,
+                                      language: language,
+                                      body: {
+                                          // Spread existing body or use fallback
+                                          ...(req.body?.body ?? FALLBACK_BODY),
+                                          [type]:
+                                              type === "raw" && language
+                                                  ? {
+                                                        // Ensure raw object exists before spreading
+                                                        ...(req.body?.body
+                                                            ?.raw ??
+                                                            FALLBACK_BODY.raw),
+                                                        [language]: body,
+                                                    }
+                                                  : body,
+                                      },
+                                  },
+                                  isSaved: false,
+                              }
                             : req,
                     ),
                 })),
@@ -187,3 +295,6 @@ export const useZapRequest = create<ZapRequestStore>()(
         },
     ),
 );
+
+//TODO
+// Check setPathAndname func , specially else acse why it is there???

@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import PlaygroundConfigHeadersTable from "./headers";
 import PlaygroundConfigSettings from "./settings";
 import PlaygroundConfigAuth from "./auth";
-import JsonEditor from "@/components/editor/editor";
+import PlaygroundMainBodyConfig from "./body/main";
 
 export default function PlaygroundMainConfig() {
     return (
@@ -15,8 +15,6 @@ export default function PlaygroundMainConfig() {
                     <TabsTrigger value="auth">Authorization</TabsTrigger>
                     <TabsTrigger value="headers">Headers</TabsTrigger>
                     <TabsTrigger value="body">Body</TabsTrigger>
-
-                    {/*network config*/}
                     <TabsTrigger value="settings">Settings</TabsTrigger>
                 </TabsList>
 
@@ -32,7 +30,7 @@ export default function PlaygroundMainConfig() {
                     <PlaygroundConfigHeadersTable />
                 </TabsContent>
                 <TabsContent value="body">
-                    <JsonEditor />
+                    <PlaygroundMainBodyConfig />
                 </TabsContent>
                 <TabsContent value="settings">
                     <PlaygroundConfigSettings />
