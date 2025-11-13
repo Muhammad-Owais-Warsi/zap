@@ -10,11 +10,14 @@ import {
 } from "@/components/ui/context-menu";
 import EnvironmentModal from "@/components/environment/main";
 import { Copy, Pen } from "lucide-react";
+import { useTheme } from "@/components/theme/theme-provider";
 
 export default function PlaygroundUrlInput() {
     const selectedFile = useCwdStore((state) => state.selectedFile);
     const getRequest = useZapRequest((state) => state.getRequest);
     const setUrl = useZapRequest((state) => state.setUrl);
+
+    const { theme } = useTheme();
 
     const [localUrl, setLocalUrl] = useState("");
     const [isEnvironmentModalOpen, setIsEnvironmentModalOpen] = useState(false);
@@ -105,7 +108,10 @@ export default function PlaygroundUrlInput() {
                         <Input
                             ref={inputRef}
                             value={localUrl}
-                            className="relative bg-transparent text-transparent dark: caret-white light:caret-dark"
+                            className={`
+                                relative bg-transparent
+                                ${theme === "dark" ? "caret-white text-transparent" : "caret-black"}
+                            `}
                             placeholder="Enter request URL..."
                             onChange={(e) => handleUrlChange(e.target.value)}
                         />

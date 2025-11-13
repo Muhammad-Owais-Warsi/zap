@@ -46,7 +46,7 @@ export default function PlaygroundConfigSettings() {
                     <div>
                         {item.type === "boolean" && (
                             <Switch
-                                defaultChecked={item.default}
+                                defaultChecked={item.value}
                                 onCheckedChange={(val: boolean) =>
                                     updateConfig(item.key, val)
                                 }

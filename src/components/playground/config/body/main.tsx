@@ -6,7 +6,6 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Unlock } from "lucide-react";
 
 import PlaygroundBodyFormData from "./form-data";
 import PlaygroundBodyXwwwFormUrlencoded from "./x-www-form-urlencoded";
@@ -14,6 +13,7 @@ import PlaygroundBodyRaw from "./raw";
 import { useZapRequest } from "@/store/request-store";
 import { useCwdStore } from "@/store/cwd-store";
 import { ZapBodyType } from "@/types/request";
+import PlaygroundBodyNone from "./none";
 
 const BODY_TYPES = [
     { title: "None", value: "none" },
@@ -39,23 +39,9 @@ export default function PlaygroundMainBodyConfig() {
     const renderConfigContent = () => {
         switch (currentRequest?.body?.current) {
             case "none":
-                return (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="text-center space-y-3 flex flex-col items-center justify-center">
-                            <div className="text-4xl text-muted-foreground">
-                                <Unlock />
-                            </div>
-                            <h3 className="text-lg font-medium">
-                                No Request Body
-                            </h3>
-                            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-                                No body will be sent with your request
-                            </p>
-                        </div>
-                    </div>
-                );
+                return <PlaygroundBodyNone />;
             case "form-data":
-                return <PlaygroundBodyFormData />;
+                return <PlaygroundBodyFormData path={selectedFile?.path} />;
             case "x-www-form-urlencoded":
                 return (
                     <PlaygroundBodyXwwwFormUrlencoded
@@ -114,6 +100,3 @@ export default function PlaygroundMainBodyConfig() {
         </div>
     );
 }
-
-//TODO
-// Just check wether the handle fucn can be optimized and inw aht ways and get better options

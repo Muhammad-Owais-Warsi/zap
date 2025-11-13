@@ -3,7 +3,7 @@ import PlaygroundConfigQueryParamsTable from "./query-params";
 import { Separator } from "@/components/ui/separator";
 import PlaygroundConfigHeadersTable from "./headers";
 import PlaygroundConfigSettings from "./settings";
-import PlaygroundConfigAuth from "./auth";
+import PlaygroundConfigAuth from "./auth/main";
 import PlaygroundMainBodyConfig from "./body/main";
 
 export default function PlaygroundMainConfig() {

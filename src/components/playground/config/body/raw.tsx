@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useZapRequest } from "@/store/request-store";
 import { ZapRawBodyTypeLanguage } from "@/types/request";
 import { useEffect } from "react";
+import { stat } from "@tauri-apps/plugin-fs";
 
 const LANGUAGES = [
     { language: "json", title: "JSON" },
@@ -35,8 +36,16 @@ export default function PlaygroundBodyRaw({ path }: { path: string }) {
     }, [storeLanguage]);
 
     const bodyContent = useZapRequest((state) => {
-        console.log(state.getRequest(path)?.body?.body?.raw);
-        return state.getRequest(path)?.body?.body?.raw?.[language];
+        const req = state.getRequest(path);
+        const body = req?.body;
+
+        console.log("HERE", body);
+
+        const nested = body?.body?.raw?.[language];
+
+        const flat = body?.raw?.[language];
+
+        return nested ?? flat ?? "";
     });
 
     const setBody = useZapRequest((state) => state.setBody);

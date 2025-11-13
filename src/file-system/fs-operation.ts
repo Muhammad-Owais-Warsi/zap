@@ -168,7 +168,7 @@ export async function renameZapFolder(
 
 export async function writeZapFile(
     path: string,
-    content: string,
+    content: any,
 ): Promise<ZapApiResponse> {
     try {
         await writeFile(path, content);

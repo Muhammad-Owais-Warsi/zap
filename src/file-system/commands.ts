@@ -156,7 +156,7 @@ async function renameFolder(path: string, newName: string) {
     });
 }
 
-async function writeFile(path: string, content: string) {
+async function writeFile(path: string, content: any) {
     const stringified_content = JSON.stringify(content);
 
     await writeTextFile(path, stringified_content, { baseDir: BASE_DIR });

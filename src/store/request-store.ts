@@ -44,7 +44,7 @@ type ZapRequestBody = {
     body: ZapBody;
 };
 
-interface ZapStoreRequest {
+export interface ZapStoreRequest {
     isSaved: boolean;
     name: string | null;
     path: string | null;

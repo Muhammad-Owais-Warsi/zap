@@ -70,6 +70,8 @@ export type ZapRawBodyTypeLanguage =
 export type ZapFormDataBodyType = {
     key: string;
     value: string | File;
+    type: "text" | "file";
+    description: string;
     enabled?: boolean;
 };
 
