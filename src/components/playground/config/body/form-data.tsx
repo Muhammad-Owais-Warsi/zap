@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import {
     InputGroup,
     InputGroupAddon,
+    InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group";
 import {
@@ -31,11 +32,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { fileToString, stringToFile } from "@/lib/file-to-string";
 import {
-    stringToFileInfo,
-    fileToString,
-    stringToFile,
-} from "@/lib/file-to-string";
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 export interface FormDataRow {
     id: string;
@@ -317,19 +320,36 @@ export default function PlaygroundBodyFormData({ path }: { path: string }) {
                 header: "Description",
                 cell: ({ row }) => {
                     return (
-                        <Input
-                            type="text"
-                            value={row.original.description}
-                            disabled={!row.original.enabled}
-                            placeholder="Description"
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "description",
-                                    e.target.value,
-                                )
-                            }
-                        />
+                        <InputGroup>
+                            <InputGroupInput
+                                value={row.original.description}
+                                disabled={!row.original.enabled}
+                                placeholder="Description"
+                                className="!pl-1"
+                                onChange={(e) =>
+                                    handleInputChange(
+                                        row.original.id,
+                                        "description",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            <InputGroupAddon align="inline-end">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <InputGroupButton
+                                            className="rounded-full"
+                                            size="icon-xs"
+                                        >
+                                            <Info />
+                                        </InputGroupButton>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {row.original.description}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </InputGroupAddon>
+                        </InputGroup>
                     );
                 },
             },

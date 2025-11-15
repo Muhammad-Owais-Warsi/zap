@@ -13,15 +13,59 @@ import { ImportIcon } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import { useState } from "react";
 import { useEffect } from "react";
+import parseCurl from "@/lib/parse-curl";
+import { writeZapFile } from "@/file-system/fs-operation";
+import { useTabsStore } from "@/store/tabs-store";
+import { useCwdStore } from "@/store/cwd-store";
+import { useZapRequest } from "@/store/request-store";
 
-export default function ImportRequest() {
+export default function ImportRequest({ workspace }: { workspace: string }) {
     const [curl, setCurl] = useState("");
     const [open, setOpen] = useState(false);
 
-    const handleImport = () => {
+    const setWorkspaceConfig = useCwdStore((state) => state.setWorkspaceConfig);
+    const workspaceConfig = useCwdStore((state) => state.workspaceConfig);
+    const setActiveTab = useTabsStore((state) => state.setActiveTab);
+    const setSelectedFile = useCwdStore((state) => state.setSelectedFile);
+    const triggerWorkspaceUpdate = useCwdStore(
+        (state) => state.triggerWorkspaceUpdate,
+    );
+    const setRequest = useZapRequest((state) => state.setRequest);
+
+    const handleImport = async () => {
         if (!curl.trim()) return;
-        console.log("Importing cURL:", curl);
-        // 👉 You can parse or send this to backend / store here
+        const name = `NEW_REQUEST_${Date.now()}.json`;
+        const path = `${workspace}/${name}`;
+        const content = parseCurl(curl, name, workspace);
+        await writeZapFile(path, content.parsedRequest);
+        triggerWorkspaceUpdate();
+        setRequest(content.parsedRequest, path);
+        setSelectedFile(path, JSON.stringify(content.parsedRequest));
+        setActiveTab({
+            name,
+            path: path,
+        });
+
+        if (content.cookies.length > 0) {
+            const parsedConfig =
+                typeof workspaceConfig === "string"
+                    ? JSON.parse(workspaceConfig)
+                    : workspaceConfig;
+
+            parsedConfig.cookieJar = [
+                ...parsedConfig.cookieJar,
+                ...content.cookies,
+            ];
+
+            const result = await writeZapFile(
+                `${workspace}/workspace_config.json`,
+                JSON.stringify(parsedConfig),
+            );
+
+            if (result.type === "error") return;
+
+            setWorkspaceConfig(parsedConfig);
+        }
     };
 
     useEffect(() => {

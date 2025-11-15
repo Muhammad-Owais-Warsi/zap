@@ -20,6 +20,18 @@ import {
     ColumnDef,
 } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from "@/components/ui/input-group";
+import { Info } from "lucide-react";
 
 export interface HeadersRow {
     id: string;
@@ -190,23 +202,36 @@ export default function PlaygroundConfigHeadersTable() {
                 header: "Description",
                 cell: ({ row }) => {
                     return (
-                        <Input
-                            type="text"
-                            value={row.original.description}
-                            disabled={row.original.default}
-                            placeholder={
-                                row.original.default
-                                    ? "Default header"
-                                    : "Add description"
-                            }
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "description",
-                                    e.target.value,
-                                )
-                            }
-                        />
+                        <InputGroup>
+                            <InputGroupInput
+                                value={row.original.description}
+                                disabled={row.original.default}
+                                placeholder="Description"
+                                className="!pl-1"
+                                onChange={(e) =>
+                                    handleInputChange(
+                                        row.original.id,
+                                        "description",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            <InputGroupAddon align="inline-end">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <InputGroupButton
+                                            className="rounded-full"
+                                            size="icon-xs"
+                                        >
+                                            <Info />
+                                        </InputGroupButton>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {row.original.description}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </InputGroupAddon>
+                        </InputGroup>
                     );
                 },
             },

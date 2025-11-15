@@ -14,7 +14,10 @@ import { useTheme } from "@/components/theme/theme-provider";
 
 export default function PlaygroundUrlInput() {
     const selectedFile = useCwdStore((state) => state.selectedFile);
-    const getRequest = useZapRequest((state) => state.getRequest);
+    const currentRequest = useZapRequest((state) => {
+        if (!selectedFile?.path) return undefined;
+        return state.getRequest(selectedFile.path);
+    });
     const setUrl = useZapRequest((state) => state.setUrl);
 
     const { theme } = useTheme();
@@ -28,12 +31,12 @@ export default function PlaygroundUrlInput() {
 
     useEffect(() => {
         if (selectedFile?.path) {
-            const request = getRequest(selectedFile.path);
-            setLocalUrl(request?.url || "");
+            // console.log("URL", request);
+            setLocalUrl(currentRequest?.url || "");
         } else {
             setLocalUrl("");
         }
-    }, [selectedFile, getRequest]);
+    }, [selectedFile, currentRequest]);
 
     function handleUrlChange(value: string) {
         setLocalUrl(value);

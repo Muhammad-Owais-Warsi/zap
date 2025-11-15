@@ -27,6 +27,7 @@ export default function TabBlock({
         if (content) {
             setSelectedFile(path, JSON.stringify(content));
             setRequest(content, path);
+            // return;
         }
 
         // if content is undefined then readme_content is the only one we have to read

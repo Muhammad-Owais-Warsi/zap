@@ -19,6 +19,18 @@ import {
     ColumnDef,
 } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from "@/components/ui/input-group";
+import { Info } from "lucide-react";
 
 export interface XwwwFormUrlencodedRow {
     id: string;
@@ -33,7 +45,10 @@ export default function PlaygroundBodyXwwwFormUrlencoded({
 }: {
     path: string;
 }) {
-    const getRequest = useZapRequest((state) => state.getRequest);
+    const currentRequest = useZapRequest((state) => {
+        if (!path) return undefined;
+        return state.getRequest(path);
+    });
     const setHeaders = useZapRequest((state) => state.setHeaders);
     const setBody = useZapRequest((state) => state.setBody);
 
@@ -41,15 +56,19 @@ export default function PlaygroundBodyXwwwFormUrlencoded({
 
     useEffect(() => {
         if (!path) return;
-        const req = getRequest(path);
+        // const req = getRequest(path);
 
-        if (!req?.body) {
+        if (!currentRequest?.body) {
             setData([]);
             return;
         }
 
+        const urlEncodedData =
+            currentRequest.body?.body?.["x-www-form-urlencoded"] ||
+            currentRequest.body?.["x-www-form-urlencoded"];
+        console.log("X", currentRequest.body);
         const loaded =
-            req.body?.body?.["x-www-form-urlencoded"]?.map((h, idx) => ({
+            urlEncodedData.map((h, idx) => ({
                 id: idx.toString(),
                 key: h.key,
                 value: h.value,
@@ -58,12 +77,12 @@ export default function PlaygroundBodyXwwwFormUrlencoded({
             })) ?? [];
 
         setData(loaded);
-    }, [path, getRequest]);
+    }, [path, currentRequest]);
 
     const updateStore = useCallback(
         (rows: XwwwFormUrlencodedRow[]) => {
             const activeParams = rows
-                .filter((d) => d.key || d.value || d.description)
+                // .filter((d) => d.key || d.value || d.description)
                 .map((d) => ({
                     key: d.key,
                     value: d.value,
@@ -75,7 +94,7 @@ export default function PlaygroundBodyXwwwFormUrlencoded({
                 setBody("x-www-form-urlencoded", path, activeParams);
             }
         },
-        [path, setHeaders],
+        [path, setBody],
     );
 
     const handleInputChange = useCallback(
@@ -114,6 +133,7 @@ export default function PlaygroundBodyXwwwFormUrlencoded({
         };
         setData((prev) => {
             const updated = [...prev, newRow];
+            console.log("DONE", updated);
             updateStore(updated);
             return updated;
         });
@@ -188,19 +208,36 @@ export default function PlaygroundBodyXwwwFormUrlencoded({
                 header: "Description",
                 cell: ({ row }) => {
                     return (
-                        <Input
-                            type="text"
-                            value={row.original.description}
-                            disabled={!row.original.enabled}
-                            placeholder="Description"
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "description",
-                                    e.target.value,
-                                )
-                            }
-                        />
+                        <InputGroup>
+                            <InputGroupInput
+                                value={row.original.description}
+                                disabled={!row.original.enabled}
+                                placeholder="Description"
+                                className="!pl-1"
+                                onChange={(e) =>
+                                    handleInputChange(
+                                        row.original.id,
+                                        "description",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            <InputGroupAddon align="inline-end">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <InputGroupButton
+                                            className="rounded-full"
+                                            size="icon-xs"
+                                        >
+                                            <Info />
+                                        </InputGroupButton>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {row.original.description}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </InputGroupAddon>
+                        </InputGroup>
                     );
                 },
             },

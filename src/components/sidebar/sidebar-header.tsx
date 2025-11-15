@@ -44,7 +44,7 @@ export default function SideHeaders({ workspace }: { workspace: string }) {
                     <TooltipContent>New Workspace</TooltipContent>
                 </Tooltip>
 
-                <ImportRequest />
+                <ImportRequest workspace={workspace} />
                 <CreateFolder />
                 <CreateRequest />
             </div>

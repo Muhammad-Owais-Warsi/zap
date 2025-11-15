@@ -17,28 +17,6 @@ export default function cleanRequest(request: ZapStoreRequest | undefined) {
                 "form-data": request.body?.body["form-data"] || [],
                 "x-www-form-urlencoded":
                     request.body?.body["x-www-form-urlencoded"] || [],
-                // raw: {
-                //     text:
-                //         request.body?.body.raw.text ||
-                //         // request.body?.raw.text ||
-                //         "",
-                //     json:
-                //         request.body?.body.raw.json ||
-                //         // request.body?.raw.json ||
-                //         "",
-                //     javascript:
-                //         request.body?.body.raw.javascript ||
-                //         // request.body?.raw.javascript ||
-                //         "",
-                //     html:
-                //         request.body?.body.raw.html ||
-                //         // request.body?.raw.html ||
-                //         "",
-                //     xml:
-                //         request.body?.body.raw.xml ||
-                //         // request.body?.raw.xml ||
-                //         "",
-                // },
                 raw: {
                     text: request.body?.body?.raw?.text || "",
                     json: request.body?.body?.raw?.json || "",
