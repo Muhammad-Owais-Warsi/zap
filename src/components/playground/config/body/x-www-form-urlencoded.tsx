@@ -49,7 +49,7 @@ export default function PlaygroundBodyXwwwFormUrlencoded({
         if (!path) return undefined;
         return state.getRequest(path);
     });
-    const setHeaders = useZapRequest((state) => state.setHeaders);
+
     const setBody = useZapRequest((state) => state.setBody);
 
     const [data, setData] = useState<XwwwFormUrlencodedRow[]>([]);
@@ -65,16 +65,18 @@ export default function PlaygroundBodyXwwwFormUrlencoded({
 
         const urlEncodedData =
             currentRequest.body?.body?.["x-www-form-urlencoded"] ||
-            currentRequest.body?.["x-www-form-urlencoded"];
+            currentRequest.body?.["x-www-form-urlencoded"] ||
+            []; // Add empty array fallback
+
         console.log("X", currentRequest.body);
-        const loaded =
-            urlEncodedData.map((h, idx) => ({
-                id: idx.toString(),
-                key: h.key,
-                value: h.value,
-                description: h.description ?? "",
-                enabled: h.enabled ?? true,
-            })) ?? [];
+
+        const loaded = urlEncodedData.map((h, idx) => ({
+            id: idx.toString(),
+            key: h.key,
+            value: h.value,
+            description: h.description ?? "",
+            enabled: h.enabled ?? true,
+        }));
 
         setData(loaded);
     }, [path, currentRequest]);

@@ -11,7 +11,6 @@ import { useState } from "react";
 import { useZapRequest } from "@/store/request-store";
 import { ZapRawBodyTypeLanguage } from "@/types/request";
 import { useEffect } from "react";
-import { stat } from "@tauri-apps/plugin-fs";
 
 const LANGUAGES = [
     { language: "json", title: "JSON" },
@@ -33,7 +32,7 @@ export default function PlaygroundBodyRaw({ path }: { path: string }) {
 
     useEffect(() => {
         setLanguage(storeLanguage);
-    }, [storeLanguage]);
+    }, [storeLanguage, path]);
 
     const bodyContent = useZapRequest((state) => {
         const req = state.getRequest(path);
@@ -76,6 +75,7 @@ export default function PlaygroundBodyRaw({ path }: { path: string }) {
                     <SelectContent>
                         {LANGUAGES.map((lang) => (
                             <SelectItem
+                                key={lang.language}
                                 value={lang.language}
                                 className="hover:cursor-pointer"
                             >
@@ -87,6 +87,7 @@ export default function PlaygroundBodyRaw({ path }: { path: string }) {
             </div>
 
             <JsonEditor
+                key={`${path}-${language}`}
                 language={language}
                 value={bodyContent || ""}
                 onChange={handleValueChange}

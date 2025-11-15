@@ -30,7 +30,7 @@ export default function PlaygroundConfigSettings() {
     };
 
     return (
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-10" key={selectedFile?.path}>
             {networkConfig?.map((item) => (
                 <div
                     key={item.key}
@@ -46,7 +46,8 @@ export default function PlaygroundConfigSettings() {
                     <div>
                         {item.type === "boolean" && (
                             <Switch
-                                defaultChecked={item.value}
+                                key={`${selectedFile?.path}-${item.key}`}
+                                checked={item.value}
                                 onCheckedChange={(val: boolean) =>
                                     updateConfig(item.key, val)
                                 }
@@ -56,8 +57,9 @@ export default function PlaygroundConfigSettings() {
                         {(item.type === "string" || item.type === "number") &&
                             !item.options && (
                                 <Input
+                                    key={`${selectedFile?.path}-${item.key}`}
                                     type="text"
-                                    value={item.value}
+                                    value={item.value || ""}
                                     onChange={(e) =>
                                         updateConfig(item.key, e.target.value)
                                     }
@@ -67,6 +69,7 @@ export default function PlaygroundConfigSettings() {
 
                         {item.options && item.type === "string" && (
                             <Select
+                                key={`${selectedFile.path}-${item.key}`}
                                 value={item.value}
                                 onValueChange={(val) =>
                                     updateConfig(item.key, val)
@@ -87,12 +90,15 @@ export default function PlaygroundConfigSettings() {
 
                         {item.type === "string[]" && (
                             <Select
+                                key={`${selectedFile?.path}-${item.key}`}
                                 onValueChange={(val) => {
-                                    const selected = item.value.includes(val)
-                                        ? item.value.filter(
+                                    const currentValue = item.value || [];
+
+                                    const selected = currentValue.includes(val)
+                                        ? currentValue.filter(
                                               (v: string) => v !== val,
                                           )
-                                        : [...item.value, val];
+                                        : [...currentValue, val];
                                     updateConfig(item.key, selected);
                                 }}
                             >
@@ -102,8 +108,8 @@ export default function PlaygroundConfigSettings() {
                                 <SelectContent>
                                     {item.options?.map((opt) => (
                                         <SelectItem key={opt} value={opt}>
-                                            {item.value.includes(opt)
-                                                ? `✓ ${opt}`
+                                            {(item.value || []).includes(opt)
+                                                ? `${opt}`
                                                 : opt}
                                         </SelectItem>
                                     ))}

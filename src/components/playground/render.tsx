@@ -31,7 +31,7 @@ export default function Render() {
                             onSave={handleSave}
                         />
                     </div>
-                ) : (
+                ) : selectedFile?.path ? (
                     <div>
                         <div className="flex min-h-0 overflow-hidden">
                             <div className="w-full p-4 flex flex-col min-h-0 min-w-0">
@@ -50,7 +50,7 @@ export default function Render() {
                             </div>
                         </div>
                     </div>
-                )}
+                ) : null}
             </div>
         </div>
     );

@@ -37,7 +37,8 @@ export default function PlaygroundMainBodyConfig() {
     };
 
     const renderConfigContent = () => {
-        switch (currentRequest?.body?.current) {
+        const bodyType = currentRequest?.body?.current || "none";
+        switch (bodyType) {
             case "none":
                 return <PlaygroundBodyNone />;
             case "form-data":
@@ -71,7 +72,7 @@ export default function PlaygroundMainBodyConfig() {
                             Body Type
                         </Label>
                         <Select
-                            value={currentRequest?.body?.current}
+                            value={currentRequest?.body?.current || "none"}
                             onValueChange={(value) =>
                                 handleBodyTypeChange(value as ZapBodyType)
                             }
@@ -82,6 +83,7 @@ export default function PlaygroundMainBodyConfig() {
                             <SelectContent className="hover:cursor-pointer">
                                 {BODY_TYPES.map((body) => (
                                     <SelectItem
+                                        key={body.value}
                                         value={body.value}
                                         className="hover:cursor-pointer"
                                     >
@@ -95,7 +97,9 @@ export default function PlaygroundMainBodyConfig() {
 
                 <div className="w-px bg-border" />
 
-                <div className="flex-1">{renderConfigContent()}</div>
+                <div className="flex-1" key={selectedFile?.path || "no-path"}>
+                    {renderConfigContent()}
+                </div>
             </div>
         </div>
     );
