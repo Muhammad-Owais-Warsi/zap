@@ -31,7 +31,8 @@ export default function CreateFolder() {
 
     const handleCreateFolder = async () => {
         if (!folderName.trim()) return;
-        if (workspace) await createZapFolder(folderName.trim(), workspace);
+        const name = `${folderName.trim()}-[${Date.now()}]`;
+        if (workspace) await createZapFolder(name, workspace);
         setFolderName("");
         triggerWorkspaceUpdate();
     };

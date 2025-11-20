@@ -12,7 +12,7 @@ interface CwdStore {
     } | null;
     setWorkspaces: (workspace: string[]) => void;
     workspaceUpdateTrigger: number;
-    setSelectedFile: (path: string, content: string) => void;
+    setSelectedFile: (path: string | null, content: string | null) => void;
     setWorkspaceConfig: (content: ZapWorkspaceConfig) => void;
     updateName: (name: string) => void;
     resetCwdStore: () => void;
@@ -35,7 +35,16 @@ export const useCwdStore = create<CwdStore>()(
             setWorkspaceConfig: (content) => set({ workspaceConfig: content }),
 
             setSelectedFile: (path, content) =>
-                set({ selectedFile: { path, content } }),
+                set((state) => {
+                    if (!path && !content) return { selectedFile: null };
+
+                    return {
+                        selectedFile: {
+                            path: path,
+                            content: content,
+                        },
+                    };
+                }),
 
             resetCwdStore: () =>
                 set({

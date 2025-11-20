@@ -10,6 +10,85 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../ui/select";
+
+function NewUi() {
+    const workspaceConfig = useCwdStore((state) => state.workspaceConfig);
+    const [selectedEnvironment, setSelectedEnvironment] =
+        useState<string>("default");
+
+    const environments = workspaceConfig?.environments;
+    if (!environments) {
+        return null;
+    }
+
+    const currentVariables = environments[selectedEnvironment] || [];
+
+    return (
+        <div className="space-y-4">
+            {/* Environment Selector */}
+            <Select
+                value={selectedEnvironment}
+                onValueChange={setSelectedEnvironment}
+            >
+                <SelectTrigger>
+                    <SelectValue placeholder="Select Environment" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {Object.entries(environments).map(
+                            ([envName, variables]) => (
+                                <SelectItem key={envName} value={envName}>
+                                    {envName}
+                                </SelectItem>
+                            ),
+                        )}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+
+            {/* Variables List */}
+            {currentVariables.length > 0 ? (
+                <div className="space-y-1">
+                    {currentVariables.map((variable, i) => (
+                        <div key={i}>
+                            <div className="flex items-center justify-between py-2">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <span className="font-mono text-sm font-medium">
+                                        {variable.key}
+                                    </span>
+                                    <span className="text-sm text-muted-foreground truncate">
+                                        {variable.value || "No value"}
+                                    </span>
+                                    <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                    >
+                                        {variable.scope}
+                                    </Badge>
+                                </div>
+                            </div>
+                            {i < currentVariables.length - 1 && <Separator />}
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="py-4 text-center">
+                    <span className="text-sm text-muted-foreground">
+                        No variables in this environment
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function EnvironmentSettings() {
     const workspaceConfig = useCwdStore((state) => state.workspaceConfig);
@@ -132,11 +211,11 @@ export default function EnvironmentSettings() {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        {variable.rootDir && (
+                                                        {variable.rootId && (
                                                             <div className="text-xs text-muted-foreground/70 mt-1">
                                                                 📁{" "}
                                                                 {
-                                                                    variable.rootDir
+                                                                    variable.rootId
                                                                 }
                                                             </div>
                                                         )}
@@ -176,6 +255,8 @@ export default function EnvironmentSettings() {
                         </Button>
                     </div>
                 )}
+
+                <NewUi />
             </div>
         </ScrollArea>
     );

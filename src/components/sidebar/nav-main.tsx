@@ -23,6 +23,7 @@ import {
     createZapRequest,
     getZapFileContent,
     moveZapRequest,
+    removeZapFileOrFolder,
     renameZapFolder,
     renameZapRequest,
 } from "@/file-system/fs-operation";
@@ -35,7 +36,6 @@ import {
     ContextMenu,
     ContextMenuContent,
     ContextMenuItem,
-    ContextMenuShortcut,
     ContextMenuTrigger,
 } from "../ui/context-menu";
 
@@ -78,6 +78,7 @@ function DraggableFile({
                     ? file.path
                     : file.path.split("/").slice(0, -1).join("/");
                 try {
+                    if (item.path === `${targetDir}/${item.name}`) return;
                     await moveZapRequest(item, targetDir);
                     triggerWorkspaceUpdate();
                 } catch (err) {
@@ -119,6 +120,15 @@ function DraggableFile({
         }
     };
 
+    const handleDelete = async () => {
+        console.log("DELETE", file.path);
+        closeTab(file.path);
+        setActiveTab(null);
+        setSelectedFile(null, null);
+        console.log(await removeZapFileOrFolder(file.path));
+        triggerWorkspaceUpdate();
+    };
+
     return (
         <SidebarMenuItem
             ref={(node) => drag(drop(node))}
@@ -126,17 +136,19 @@ function DraggableFile({
             className={isOver ? "bg-muted" : ""}
         >
             {isRenaming ? (
-                <Input
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    onBlur={() => setIsRenaming(false)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") handleRename();
-                        if (e.key === "Escape") setIsRenaming(false);
-                    }}
-                    autoFocus
-                    className="bg-transparent border-b border-primary/50 px-1 text-sm focus:outline-none w-full"
-                />
+                <div className="px-2 py-1">
+                    <Input
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        onBlur={() => setIsRenaming(false)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") handleRename();
+                            if (e.key === "Escape") setIsRenaming(false);
+                        }}
+                        autoFocus
+                        className="h-6 text-xs border-0 border-b border-primary/50 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-primary px-1"
+                    />
+                </div>
             ) : (
                 <ContextMenu>
                     <ContextMenuTrigger>
@@ -165,7 +177,10 @@ function DraggableFile({
                         <ContextMenuItem onClick={() => setIsRenaming(true)}>
                             Rename
                         </ContextMenuItem>
-                        <ContextMenuItem variant="destructive">
+                        <ContextMenuItem
+                            variant="destructive"
+                            onClick={() => handleDelete()}
+                        >
                             Delete
                         </ContextMenuItem>
                     </ContextMenuContent>
@@ -197,6 +212,7 @@ export function FolderDropArea({
         drop: async (item) => {
             if (!item || item.isDir || item.path === folder.path) return;
             try {
+                if (item.path === `${folder.path}/${item.name}`) return;
                 await moveZapRequest(item, folder.path);
                 triggerWorkspaceUpdate();
             } catch (err) {
@@ -294,7 +310,9 @@ function NavMainContent({
 
     const renderFolder = (folder: entriesType) => {
         const [isRenaming, setIsRenaming] = useState(false);
-        const [newName, setNewName] = useState(folder.name);
+        const [newName, setNewName] = useState(
+            folder.name.match(/^(.*?)-\[/)?.[1] || folder.name,
+        );
 
         const [{ isOver }, drop] = useDrop<DragItem>({
             accept: "FILE",
@@ -322,35 +340,47 @@ function NavMainContent({
             }
             try {
                 const oldPath = folder.path;
-
-                await renameZapFolder(oldPath, newName);
+                const id = folder.path.match(/\[(.*?)\]/)?.[1] || null;
+                await renameZapFolder(oldPath, `${newName}-[${id}]`);
                 triggerWorkspaceUpdate();
                 closeTab(`${oldPath}/README.md`);
+                setIsRenaming(false);
             } catch (err) {
                 console.error("Rename failed:", err);
             }
         };
 
+        const handleDelete = async () => {
+            closeTab(`${folder.path}/README.md`);
+            await removeZapFileOrFolder(folder.path);
+            setActiveTab(null);
+            setSelectedFile(null, null);
+            triggerWorkspaceUpdate();
+        };
+
         return (
             <Collapsible key={folder.path} defaultOpen>
-                <ContextMenu>
-                    <ContextMenuTrigger>
-                        <SidebarMenuItem>
-                            {isRenaming ? (
-                                <Input
-                                    value={newName}
-                                    onChange={(e) => setNewName(e.target.value)}
-                                    onBlur={() => setIsRenaming(false)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter")
-                                            handleRenameFolder();
-                                        if (e.key === "Escape")
-                                            setIsRenaming(false);
-                                    }}
-                                    autoFocus
-                                    className="bg-transparent border-b border-primary/50 px-1 text-sm focus:outline-none w-full"
-                                />
-                            ) : (
+                {isRenaming ? (
+                    <SidebarMenuItem>
+                        <div className="px-2 py-1">
+                            <Input
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                onBlur={() => setIsRenaming(false)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleRenameFolder();
+                                    if (e.key === "Escape")
+                                        setIsRenaming(false);
+                                }}
+                                autoFocus
+                                className="h-6 text-xs border-0 border-b border-primary/50 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-primary px-1"
+                            />
+                        </div>
+                    </SidebarMenuItem>
+                ) : (
+                    <ContextMenu>
+                        <ContextMenuTrigger>
+                            <SidebarMenuItem>
                                 <CollapsibleTrigger asChild>
                                     <SidebarMenuButton
                                         onClick={() =>
@@ -364,66 +394,61 @@ function NavMainContent({
                                     >
                                         {folder.icon && <folder.icon />}
                                         <span className="flex-1 ml-1">
-                                            {folder.name}
+                                            {folder.name.split("-[")[0]}
                                         </span>
-
                                         <ChevronRight className="ml-auto" />
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
-                            )}
-                            <CollapsibleContent>
-                                <FolderDropArea
-                                    folder={folder}
-                                    setSourceTarget={setSourceTarget}
-                                    triggerWorkspaceUpdate={
-                                        triggerWorkspaceUpdate
-                                    }
-                                >
-                                    {folder.items
-                                        ?.filter(
-                                            (file) =>
-                                                !IGNORED_FILES.includes(
-                                                    file.name,
-                                                ),
-                                        )
-                                        .map((file) => (
-                                            <DraggableFile
-                                                key={file.path}
-                                                file={file}
-                                                handleFileClick={
-                                                    handleFileClick
-                                                }
-                                                setSourceTarget={
-                                                    setSourceTarget
-                                                }
-                                                triggerWorkspaceUpdate={
-                                                    triggerWorkspaceUpdate
-                                                }
-                                            />
-                                        ))}
-                                    <Button
-                                        onClick={() =>
-                                            handleCreateFile(folder.path)
+                            </SidebarMenuItem>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                            <ContextMenuItem
+                                onClick={() => setIsRenaming(true)}
+                            >
+                                Rename
+                            </ContextMenuItem>
+                            <ContextMenuItem
+                                variant="destructive"
+                                onClick={() => handleDelete()}
+                            >
+                                Delete
+                            </ContextMenuItem>
+                        </ContextMenuContent>
+                    </ContextMenu>
+                )}
+                <SidebarMenuItem>
+                    <CollapsibleContent>
+                        <FolderDropArea
+                            folder={folder}
+                            setSourceTarget={setSourceTarget}
+                            triggerWorkspaceUpdate={triggerWorkspaceUpdate}
+                        >
+                            {folder.items
+                                ?.filter(
+                                    (file) =>
+                                        !IGNORED_FILES.includes(file.name),
+                                )
+                                .map((file) => (
+                                    <DraggableFile
+                                        key={file.path}
+                                        file={file}
+                                        handleFileClick={handleFileClick}
+                                        setSourceTarget={setSourceTarget}
+                                        triggerWorkspaceUpdate={
+                                            triggerWorkspaceUpdate
                                         }
-                                        variant="ghost"
-                                        className="w-full justify-start"
-                                    >
-                                        <Plus className="h-4 w-4 mr-2" /> New
-                                        File
-                                    </Button>
-                                </FolderDropArea>
-                            </CollapsibleContent>
-                        </SidebarMenuItem>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                        <ContextMenuItem onClick={() => setIsRenaming(true)}>
-                            Rename
-                        </ContextMenuItem>
-                        <ContextMenuItem variant="destructive">
-                            Delete
-                        </ContextMenuItem>
-                    </ContextMenuContent>
-                </ContextMenu>
+                                    />
+                                ))}
+                            <Button
+                                onClick={() => handleCreateFile(folder.path)}
+                                variant="ghost"
+                                className="w-full justify-start"
+                            >
+                                <Plus className="h-4 w-4 mr-2" /> New File
+                            </Button>
+                        </FolderDropArea>
+                    </CollapsibleContent>
+                </SidebarMenuItem>
             </Collapsible>
         );
     };

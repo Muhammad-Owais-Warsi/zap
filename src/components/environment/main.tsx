@@ -61,7 +61,7 @@ export default function EnvironmentModal({
                         {
                             key: variableName.trim(),
                             value: defaultValue,
-                            rootDir, // it saving whole path from workspace -> file
+                            rootId: rootDir.match(/\[(.*?)\]/)?.[1] || null,
                             scope,
                         },
                     ],

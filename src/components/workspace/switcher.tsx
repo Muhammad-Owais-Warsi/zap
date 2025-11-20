@@ -90,6 +90,7 @@ export function WorkspaceSwitcher() {
                             size="icon-sm"
                             variant="ghost"
                             className="hover:cursor-pointer"
+                            onClick={() => setOpen(true)}
                         >
                             <SwitchCamera />
                         </Button>

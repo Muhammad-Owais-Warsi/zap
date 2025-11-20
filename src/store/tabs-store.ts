@@ -9,7 +9,7 @@ export type TabInfo = {
 interface Tabs {
     activeTab: TabInfo | null;
     tabs: TabInfo[];
-    setActiveTab: (tab: TabInfo) => void;
+    setActiveTab: (tab: TabInfo | null) => void;
     addNewTab: (tab: TabInfo) => void;
     closeTab: (path: string) => void;
     resetTabStore: () => void;
@@ -23,6 +23,7 @@ export const useTabsStore = create<Tabs>()(
 
             setActiveTab: (tab) =>
                 set((state) => {
+                    if (!tab) return { activeTab: null, tabs: state.tabs };
                     const exists = state.tabs.some((t) => t.path === tab.path);
                     const updatedTabs = exists
                         ? state.tabs

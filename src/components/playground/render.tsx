@@ -19,20 +19,20 @@ export default function Render() {
 
     return (
         <div className="flex flex-col flex-1 min-h-0 w-full bg-background text-foreground">
-            <div>
+            <div className="flex flex-col flex-1 min-h-0">
                 <div className="shrink-0">
                     <PlaygroundTabs />
                 </div>
 
                 {selectedFile?.path?.includes("README.md") ? (
-                    <div className="p-6 overflow-auto">
+                    <div className="p-6 overflow-auto flex-1">
                         <MarkdownEditor
                             initialContent={cleaned_markdown}
                             onSave={handleSave}
                         />
                     </div>
                 ) : selectedFile?.path ? (
-                    <div>
+                    <div className="flex-1 flex flex-col min-h-0">
                         <div className="flex min-h-0 overflow-hidden">
                             <div className="w-full p-4 flex flex-col min-h-0 min-w-0">
                                 <PlaygroundMainInput />
@@ -50,7 +50,16 @@ export default function Render() {
                             </div>
                         </div>
                     </div>
-                ) : null}
+                ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                        <p className="text-lg text-muted-foreground text-center">
+                            A lightweight{" "}
+                            <span className="text-[oklch(0.7392_0.1154_242.0535)]">
+                                API client
+                            </span>
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );

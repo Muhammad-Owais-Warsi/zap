@@ -38,7 +38,7 @@ import { ZapFileConfig } from "@/types/fs";
 // };
 
 // HERE CANT HANDLE RAW TYPE...CHECK THIS
-type ZapRequestBody = {
+export type ZapRequestBody = {
     current: ZapBodyType;
     language?: ZapRawBodyTypeLanguage;
     body: ZapBody;

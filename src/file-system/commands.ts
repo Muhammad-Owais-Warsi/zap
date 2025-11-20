@@ -5,6 +5,7 @@ import {
     exists,
     readTextFile,
     rename,
+    remove,
 } from "@tauri-apps/plugin-fs";
 import { readDir } from "@tauri-apps/plugin-fs";
 import {
@@ -14,7 +15,6 @@ import {
     create_workspcae_config_content,
 } from "./fs-data";
 import { WorkspaceEntry } from "@/types/fs";
-import { invoke } from "@tauri-apps/api/core";
 
 const BASE_DIR = BaseDirectory.AppData;
 
@@ -118,8 +118,6 @@ async function moveFile(
     source: { path: string; isDir: boolean; name: string },
     target: string,
 ) {
-    if (source.path === target) return;
-
     if (source.isDir) {
         throw new Error("Source cannot be a directory");
     }
@@ -156,6 +154,14 @@ async function renameFolder(path: string, newName: string) {
     });
 }
 
+async function removeFileOrDir(path: string) {
+    if (!(await exists(path, { baseDir: BASE_DIR }))) {
+        throw Error("Not exist");
+    }
+
+    await remove(path, { baseDir: BASE_DIR, recursive: true });
+}
+
 async function writeFile(path: string, content: any) {
     const stringified_content = JSON.stringify(content);
 
@@ -173,4 +179,5 @@ export {
     renameFile,
     renameFolder,
     writeFile,
+    removeFileOrDir,
 };

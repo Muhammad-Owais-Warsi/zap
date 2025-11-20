@@ -20,10 +20,10 @@ export default function SideHeaders({ workspace }: { workspace: string }) {
     const resetTabsStore = useTabsStore((state) => state.resetTabStore);
 
     const handleCreateWorkspace = async () => {
-        console.log(await createZapWorkspace("hello_new_zap"));
+        console.log(await createZapWorkspace("ZAP"));
         resetCwdStore();
         resetTabsStore();
-        updateName("hello_new_zap");
+        updateName("ZAP");
     };
 
     return (

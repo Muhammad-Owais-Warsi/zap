@@ -212,3 +212,19 @@ body {
     background-color: transparent !important; /* remove white background */
     border-right-color: rgba(255, 255, 255, 0.1) !important;
 }
+
+/* Custom sidebar positioning to account for title bar */
+/* Custom sidebar positioning to account for title bar */
+.sidebar-with-titlebar [data-slot="sidebar-container"] {
+    top: 2.5rem !important; /* 40px for title bar height */
+    height: calc(100vh - 2.5rem) !important;
+}
+
+.sidebar-with-titlebar [data-slot="sidebar-gap"] {
+    margin-top: 2.5rem;
+}
+
+/* Ensure SidebarInset content starts below title bar */
+.sidebar-with-titlebar [data-slot="sidebar-inset"] {
+    padding-top: 2.5rem;
+}

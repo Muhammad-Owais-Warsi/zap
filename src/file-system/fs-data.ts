@@ -15,6 +15,23 @@ export function create_workspcae_config_content(name: string, path: string) {
     return CREATE_WORKSPACE_CONFIG_CONTENT;
 }
 
+// issue with variable is that if user creates a variable and then they chnage the name of file or folder
+// it doesnt get updated in the workspace config, so the check wiht rootDir fails and it is not poossible to update the
+// paths for each var and each env
+
+// Instead of assigning id to each folder we'll re-implement avriables in folder config
+// beacuse folder config was not used but thats not the main concern , the main concern is that
+// we then dont have to keep track of the folder_config everytime
+// now the question ariseshow this solves variable issue, in this solutuon we do
+//
+// - keep variables in folder_config as well as workspace_config
+// - folder_config should just have folder scoped vars and similarly for workspace (should only have workspace scope vars)
+// - when searching we first fetch the folder_config
+//
+//
+// but here also we have to keep traack of config file
+// another solution is that in the folder or file path itself we keep random id
+// whne createing avriables store those ID isnetd of rootdir and check
 export function create_folder_config_content(name: string, path: string) {
     const CREATE_FOLDER_CONFIG_CONTENT: ZapFolderConfig = {
         name: name,
@@ -61,7 +78,7 @@ export function create_file_config_content(name: string, path: string) {
 
 export function create_readme_content(name: string) {
     return `## Welcome to Zap
-    This is folder ${name}
+This is folder ${name.match(/^(.*?)-\[/)?.[1] || name}
   `;
 }
 

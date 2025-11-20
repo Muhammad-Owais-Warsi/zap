@@ -7,6 +7,7 @@ import {
     getWorkspace,
     getWorkspaceRecursively,
     moveFile,
+    removeFileOrDir,
     renameFile,
     renameFolder,
     writeFile,
@@ -175,6 +176,23 @@ export async function writeZapFile(
         return {
             type: "success",
             message: "File saved successfully",
+        };
+    } catch (error: any) {
+        return {
+            type: "error",
+            message: error.message,
+        };
+    }
+}
+
+export async function removeZapFileOrFolder(
+    path: string,
+): Promise<ZapApiResponse> {
+    try {
+        await removeFileOrDir(path);
+        return {
+            type: "success",
+            message: "Removed successfully",
         };
     } catch (error: any) {
         return {
