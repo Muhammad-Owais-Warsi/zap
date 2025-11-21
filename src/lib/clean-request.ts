@@ -7,9 +7,11 @@ import {
     ZapQueryParams,
     ZapFormDataBodyType,
     ZapFormUrlEncodedBodyType,
+    ZapCookie,
 } from "@/types/request";
 import { ZapWorkspaceConfig } from "@/types/fs";
 import parseUrl from "./parse-url";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function cleanRequest(request: ZapStoreRequest | undefined) {
     if (!request) return;
@@ -46,7 +48,7 @@ export default function cleanRequest(request: ZapStoreRequest | undefined) {
     return requestPayload;
 }
 
-export function cleanRequestBeforeSending(
+export async function cleanRequestBeforeSending(
     request: ZapStoreRequest | undefined,
     workspaceConfig: ZapWorkspaceConfig,
     currentEnv: string,
@@ -57,6 +59,7 @@ export function cleanRequestBeforeSending(
     const headers = getKeyValue(request.headers || DEFAULT_HEADERS);
     const params = getKeyValue(request.queryParams || []);
     const body = getBody(request.body);
+    const cookies = workspaceConfig.cookieJar;
     const networkConfig = getNetworkConfig(
         request.networkConfig || NETWORK_CONFIG,
     );
@@ -77,6 +80,7 @@ export function cleanRequestBeforeSending(
         headers: headers,
         body: body,
         params: params,
+        cookies: cookies,
         auth: {
             type: request.auth?.type || "no-auth",
             config: request.auth?.config || undefined,
@@ -84,6 +88,11 @@ export function cleanRequestBeforeSending(
         networkConfig: networkConfig,
         // },
     };
+    console.log("here", requestPayload);
+    const result = await invoke("make_request", {
+        payload: requestPayload,
+    });
+    console.log(result);
 
     return requestPayload;
 }
@@ -121,7 +130,7 @@ function getBody(content: ZapRequestBody | null) {
         type: string;
         content: any;
     } = {
-        type: "",
+        type: "none",
         content: null,
     };
 

@@ -169,15 +169,6 @@ export const NETWORK_CONFIG: ZapNetworkConfig = [
         description: "Set a cap on the maximum number of redirects to follow.",
     },
     {
-        key: "followOriginalHttpMethod",
-        type: "boolean",
-        title: "Follow original HTTP Method",
-        value: false,
-        default: false,
-        description:
-            "Redirect with the original HTTP method instead of the default behavior of redirecting with GET.",
-    },
-    {
         key: "followAuthHeader",
         type: "boolean",
         title: "Follow Authorization header",
@@ -185,24 +176,6 @@ export const NETWORK_CONFIG: ZapNetworkConfig = [
         default: false,
         description:
             "Retain authorization header when a redirect happens to a different hostname.",
-    },
-    {
-        key: "autoEncodeUrl",
-        type: "boolean",
-        title: "Encode URL automatically",
-        value: true,
-        default: true,
-        description:
-            "Encode the URL's path, query parameters, and authentication fields.",
-    },
-    {
-        key: "disableCookieJar",
-        type: "boolean",
-        title: "Disable cookie jar",
-        value: false,
-        default: false,
-        description:
-            "Prevent cookies used in this request from being stored in the cookie jar. Existing cookies in the cookie jar will not be added as headers for this request.",
     },
     {
         key: "strictHttpParser",

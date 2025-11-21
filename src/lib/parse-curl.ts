@@ -299,28 +299,37 @@ function tokenizeCurlCommand(command: string): string[] {
             inQuotes = true;
             quoteChar = char;
         } else if (inQuotes && char === quoteChar) {
-            inQuotes = false;
-            quoteChar = "";
+            if (i + 1 < command.length && command[i + 1] === quoteChar) {
+                current += char;
+                i++;
+            } else {
+                inQuotes = false;
+                quoteChar = "";
+            }
         } else if (!inQuotes && /\s/.test(char)) {
-            if (current) {
-                tokens.push(current);
+            if (current.trim()) {
+                tokens.push(current.trim());
                 current = "";
             }
-            while (i < command.length && /\s/.test(command[i])) {
+            while (i + 1 < command.length && /\s/.test(command[i + 1])) {
                 i++;
             }
-            continue;
         } else {
             current += char;
         }
         i++;
     }
 
-    if (current) {
-        tokens.push(current);
+    if (current.trim()) {
+        tokens.push(current.trim());
     }
 
-    return tokens;
+    return tokens.map((token) => {
+        return token
+            .replace(/\^\\\^"/g, '"')
+            .replace(/\^"/g, '"')
+            .replace(/"\^/g, '"');
+    });
 }
 
 function parseAuthHeader(
@@ -422,8 +431,6 @@ function parseCookieString(cookieString: string, url: string): ZapCookie[] {
     return cookies;
 }
 
-// we can keep only header check but we wouldn't coz the file is not saved and we dont know wether the input is proper
-// with all headers or not
 function detectContentType(
     body: string,
     headers: ZapHeaders[],
@@ -481,5 +488,18 @@ function detectContentType(
 }
 
 function trimSpace(content: string) {
-    return content.trim().replace(/\\\s*\n\s*/g, " ");
+    let cleaned = content.trim().replace(/\\\s*\n\s*/g, " ");
+    cleaned = cleanWindowsCaretEscaping(cleaned);
+    return cleaned;
+}
+
+function cleanWindowsCaretEscaping(content: string): string {
+    let cleaned = content.replace(/\^\s+/g, " ");
+    cleaned = cleaned.replace(/\^\\\^"/g, '"');
+    cleaned = cleaned.replace(/\^"([^"]*)\^"/g, '"$1"');
+    cleaned = cleaned.replace(/\s\^\s/g, " ");
+    cleaned = cleaned.replace(/^\^/, "");
+    cleaned = cleaned.replace(/\^$/, "");
+    cleaned = cleaned.replace(/\s+/g, " ");
+    return cleaned.trim();
 }

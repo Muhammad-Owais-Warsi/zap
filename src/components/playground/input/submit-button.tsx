@@ -12,11 +12,11 @@ export default function PlaygroundSubmitButton() {
     const currentEnv = useVariableStore((state) => state.current);
     const workspaceConfig = useCwdStore((state) => state.workspaceConfig);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!selectedFile && workspaceConfig) return;
         const request = getRequest(selectedFile?.path!);
         console.log(
-            cleanRequestBeforeSending(
+            await cleanRequestBeforeSending(
                 request,
                 workspaceConfig!,
                 currentEnv,

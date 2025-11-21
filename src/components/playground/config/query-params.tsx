@@ -115,10 +115,6 @@ export default function QueryParamsTable() {
                 header: ({ table }) => (
                     <Checkbox
                         checked={table.getIsAllRowsSelected()}
-                        // indeterminate={
-                        //     table.getIsSomeRowsSelected() &&
-                        //     !table.getIsAllRowsSelected()
-                        // }
                         onCheckedChange={(value) =>
                             table.toggleAllRowsSelected(!!value)
                         }
@@ -206,9 +202,9 @@ export default function QueryParamsTable() {
     return (
         <Tabs defaultValue="table">
             <TabsContent value="table" className="flex flex-col gap-4">
-                <div className="overflow-hidden rounded-lg border">
+                <div className="max-h-160 overflow-auto rounded-lg border">
                     <Table>
-                        <TableHeader>
+                        <TableHeader className="sticky top-0 bg-background z-10">
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (

@@ -43,7 +43,7 @@ function TooltipContent({
                 data-slot="tooltip-content"
                 sideOffset={sideOffset}
                 className={cn(
-                    "bg-foreground text-background animate-in fade-in-0 zoom-in-95 " +
+                    "bg-foreground text-background " +
                         "z-50 max-w-xs sm:max-w-sm md:max-w-md w-max origin-[var(--radix-tooltip-content-transform-origin)] " +
                         "rounded-md px-3 py-1.5 text-xs whitespace-normal break-words leading-relaxed",
                     className,
