@@ -62,4 +62,15 @@ export const FileSystemOperations = {
         tabs.updateTabPath(oldPath, newPath);
         fs.moveFile(oldPath, newPath);
     },
+    renameFileOrFolderAndHandleTabPath(
+        oldPath: string,
+        newName: string,
+        isDir: boolean,
+    ) {
+        const fs = useFileSystemStore.getState();
+        const tabs = useTabsStore.getState();
+
+        tabs.renameTabPath(oldPath, newName, isDir);
+        fs.renameFileOrFolder(oldPath, newName);
+    },
 };

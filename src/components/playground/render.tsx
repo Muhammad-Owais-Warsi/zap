@@ -1,4 +1,5 @@
-import { useCwdStore } from "@/store/cwd-store";
+import { useEffect, useState } from "react";
+// import { useCwdStore } from "@/store/cwd-store";
 import PlaygroundTabs from "./tabs/tabs";
 import PlaygroundMainInput from "./input/main";
 import PlaygroundMainConfig from "./config/main";
@@ -7,14 +8,20 @@ import MarkdownEditor from "../ui/markdown";
 import { cleanString } from "@/lib/clean-string";
 import { writeZapFile } from "@/file-system/fs-operation";
 import { useFileSystemStore } from "@/store/new/file-system";
+import { useTabsStore } from "@/store/new/tabs-store";
 
 export default function Render() {
-    const selectedFile = useCwdStore((state) => state.selectedFile);
-    // const activeFile = useFileSystemStore().activeFile;
-
     const activeFile = useFileSystemStore().activeFile;
+    const activeTab = useTabsStore().activeTab;
+    const [cleanedMarkdown, setCleanedMarkdown] = useState<string>(
+        "Cant render markdown",
+    );
 
-    const cleaned_markdown = cleanString(selectedFile?.content);
+    useEffect(() => {
+        if (activeFile?.endsWith("README.md")) {
+            setCleanedMarkdown(cleanString(activeTab?.content));
+        }
+    }, [activeFile]);
 
     const handleSave = async (content: string) => {
         const cleaned_content = cleanString(content);
@@ -31,7 +38,7 @@ export default function Render() {
                 {activeFile?.includes("README.md") ? (
                     <div className="p-6 overflow-auto flex-1">
                         <MarkdownEditor
-                            initialContent={cleaned_markdown}
+                            initialContent={cleanedMarkdown}
                             onSave={handleSave}
                         />
                     </div>

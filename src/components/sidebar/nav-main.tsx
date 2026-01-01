@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { ChevronRight, Plus, Folder, FileCode } from "lucide-react";
+import { ChevronRight, Plus, Folder } from "lucide-react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
@@ -27,8 +27,6 @@ import { Button } from "../ui/button";
 import MethodBadge from "../theme/method-badge";
 
 import { type entriesType } from "@/hooks/useWorkspace";
-import { useCwdStore } from "@/store/cwd-store";
-// import { useTabsStore } from "@/store/tabs-store";
 import { useZapRequest } from "@/store/request-store";
 import { IGNORED_FILES } from "@/lib/ignored-files";
 import ignoreExt from "@/lib/ignore-extension";
@@ -47,26 +45,18 @@ import { useFileSystemStore } from "@/store/new/file-system";
 
 type DragItem = { path: string; isDir: boolean; name: string };
 
-// --- Sub-Component: Draggable File ---
-//
-//
 // CORRECT THE LOGIC OF ACTIVE FILE HERE
 const DraggableFile = ({
     file,
     onFileClick,
-    triggerUpdate,
 }: {
     file: entriesType;
     onFileClick: (path: string, name: string, method?: ZapHttpMethods) => void;
-    triggerUpdate: () => void;
 }) => {
     const [isRenaming, setIsRenaming] = useState(false);
     const [newName, setNewName] = useState(file.name.split(".")[0]);
 
     const activeFile = useFileSystemStore().activeFile;
-    const setSelectedFile = useCwdStore((state) => state.setSelectedFile);
-    const closeTab = useTabsStore((state) => state.closeTab);
-    const setActiveTab = useTabsStore((state) => state.setActiveTab);
 
     const [{ isDragging }, drag] = useDrag({
         type: "FILE",
@@ -82,14 +72,12 @@ const DraggableFile = ({
         }
         try {
             const oldPath = file.path;
-            const fileDir = oldPath.split("/").slice(0, -1).join("/");
-            const newPath = `${fileDir}/${newName}.json`;
-
             await renameZapRequest(oldPath, newName);
-            triggerUpdate();
-            closeTab(oldPath);
-            setActiveTab(newPath, `${newName}.json`, file?.method);
-            setSelectedFile(newPath, newName);
+            FileSystemOperations.renameFileOrFolderAndHandleTabPath(
+                oldPath,
+                newName,
+                false,
+            );
             setIsRenaming(false);
         } catch (err) {
             console.error("Rename failed:", err);
@@ -157,12 +145,10 @@ const FolderItem = ({
     folder,
     onFileClick,
     onFolderClick,
-    triggerUpdate,
 }: {
     folder: entriesType;
     onFileClick: (path: string, name: string) => void;
     onFolderClick: (path: string) => void;
-    triggerUpdate: () => void;
 }) => {
     const [isRenaming, setIsRenaming] = useState(false);
     const [newName, setNewName] = useState(folder.name.split("-[")[0]);
@@ -174,7 +160,6 @@ const FolderItem = ({
         drop: async (item: DragItem) => {
             await moveZapRequest(item, folder.path);
             FileSystemOperations.moveFileAndUpdateTab(item.path, folder.path);
-            // triggerUpdate();
         },
         collect: (monitor) => ({ isOver: monitor.isOver({ shallow: true }) }),
     });
@@ -186,8 +171,15 @@ const FolderItem = ({
         }
         try {
             const id = folder.path.match(/\[(.*?)\]/)?.[1] || "";
-            await renameZapFolder(folder.path, `${newName}-[${id}]`);
-            triggerUpdate();
+            const oldPath = folder.path;
+            const newFolderName = `${newName}-[${id}]`;
+            await renameZapFolder(oldPath, newFolderName);
+            FileSystemOperations.renameFileOrFolderAndHandleTabPath(
+                oldPath,
+                newFolderName,
+                true,
+            );
+
             setIsRenaming(false);
         } catch (err) {
             console.error(err);
@@ -229,7 +221,10 @@ const FolderItem = ({
                                             setNewName(e.target.value)
                                         }
                                         onBlur={handleRename}
-                                        className="h-5 text-xs"
+                                        onKeyDown={(e) =>
+                                            e.key === "Enter" && handleRename()
+                                        }
+                                        className="h-6 text-xs focus:ring-2 focus:ring-blue-500"
                                     />
                                 ) : (
                                     <span className="flex-1">
@@ -263,7 +258,6 @@ const FolderItem = ({
                                 key={file.path}
                                 file={file}
                                 onFileClick={onFileClick}
-                                triggerUpdate={triggerUpdate}
                             />
                         ))}
                     <Button
@@ -291,7 +285,6 @@ function NavMainContent({
     const setRequest = useZapRequest((state) => state.setRequest);
 
     const setActiveTab = useTabsStore().setActiveTab;
-    const triggerUpdate = useCwdStore((state) => state.triggerWorkspaceUpdate);
 
     const handleFileClick = useCallback(
         async (path: string, name: string, method?: ZapHttpMethods) => {
@@ -308,13 +301,20 @@ function NavMainContent({
         [setActiveFile, setRequest, setActiveTab],
     );
 
+    // check for existing tabs open
     const handleFolderClick = useCallback(
         async (path: string) => {
             const readme = `${path}/README.md`;
             try {
-                // const content = await getZapFileContent(readme);
+                const content = await getZapFileContent(readme);
                 setActiveFile(readme);
-                setActiveTab(readme, "README.md");
+                if (content.type === "success")
+                    setActiveTab(
+                        readme,
+                        "README.md",
+                        undefined,
+                        content.message,
+                    );
             } catch {
                 /* No readme found */
             }
@@ -350,14 +350,12 @@ function NavMainContent({
                                 folder={item}
                                 onFileClick={handleFileClick}
                                 onFolderClick={handleFolderClick}
-                                triggerUpdate={triggerUpdate}
                             />
                         ) : (
                             <DraggableFile
                                 key={item.path}
                                 file={item}
                                 onFileClick={handleFileClick}
-                                triggerUpdate={triggerUpdate}
                             />
                         ),
                     )}
