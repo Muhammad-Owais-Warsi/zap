@@ -15,12 +15,12 @@ import {
     create_workspcae_config_content,
 } from "./fs-data";
 import { WorkspaceEntry } from "@/types/fs";
+import { invoke } from "@tauri-apps/api/core";
 
 const BASE_DIR = BaseDirectory.AppData;
 
 async function getWorkspace() {
     const entries = await readDir("./", { baseDir: BASE_DIR });
-    // console.log("Entries:", entries);
 
     const folders = entries
         .filter((entry) => entry.isDirectory)
@@ -30,27 +30,59 @@ async function getWorkspace() {
     return folders;
 }
 
-async function getWorkspaceRecursively(name: string) {
-    const entries = await readDir(name, { baseDir: BASE_DIR });
-    const result: WorkspaceEntry[] = [];
-
-    for (const entry of entries) {
-        const isDir = entry.isDirectory;
-        const fullPath = name ? `${name}/${entry.name!}` : entry.name!;
-        const workspaceEntry: WorkspaceEntry = {
-            name: entry.name!,
-            path: fullPath,
-            isDirectory: isDir,
-        };
-
-        if (isDir) {
-            workspaceEntry.children = await getWorkspaceRecursively(fullPath);
-        }
-
-        result.push(workspaceEntry);
-    }
+async function getWorkspaceRecursively(
+    name: string,
+): Promise<WorkspaceEntry[]> {
+    // const entries = await readDir(name, { baseDir: BASE_DIR });
+    // // Use Promise.all to fetch all entries in a directory simultaneously (much faster)
+    // const result = await Promise.all(
+    //     entries.map(async (entry) => {
+    //         const entryName = entry.name!;
+    //         const isDir = entry.isDirectory;
+    //         const fullPath = name ? `${name}/${entryName}` : entryName;
+    //         const workspaceEntry: WorkspaceEntry = {
+    //             name: entryName,
+    //             path: fullPath,
+    //             content: "",
+    //             isDirectory: isDir,
+    //         };
+    //         if (isDir) {
+    //             // Recurse into subdirectories
+    //             workspaceEntry.children =
+    //                 await getWorkspaceRecursively(fullPath);
+    //         } else {
+    //             // --- Logic for Files ---
+    //             try {
+    //                 // Only attempt to read if it's a file we expect to be JSON
+    //                 // You can add a check here: if (entryName.endsWith('.json'))
+    //                 const content = await getFileContent(fullPath);
+    //                 if (content && content.trim()) {
+    //                     const parsedContent = JSON.parse(content);
+    //                     // Safely access the method (using optional chaining)
+    //                     workspaceEntry.content = content;
+    //                     workspaceEntry.method =
+    //                         parsedContent?.content?.method || "GET";
+    //                 } else {
+    //                     workspaceEntry.method = "GET";
+    //                 }
+    //             } catch (error) {
+    //                 // If JSON is invalid or file is unreadable, default to GET
+    //                 // and don't let the whole process crash
+    //                 console.error(`Error parsing file ${entryName}:`, error);
+    //                 workspaceEntry.method = "GET";
+    //             }
+    //         }
+    //         return workspaceEntry;
+    //     }),
+    // );
+    // console.log("Workspace Refreshed:", result);
+    // return result;
+    //
+    const result = await invoke("read_workspace_recursive", {
+        workspace: name,
+    });
     console.log(result);
-    return result;
+    return result as WorkspaceEntry[];
 }
 
 async function getFileContent(path: string) {

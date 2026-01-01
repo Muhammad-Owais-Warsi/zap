@@ -32,7 +32,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { fileToString, stringToFile } from "@/lib/file-to-string";
+import { fileToString, stringToFile } from "@/lib/fs/file-to-string";
 import {
     Tooltip,
     TooltipContent,

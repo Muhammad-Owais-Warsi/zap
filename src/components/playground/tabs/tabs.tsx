@@ -1,25 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { useTabsStore } from "@/store/tabs-store";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import TabBlock from "./tab-block";
-import { useCwdStore } from "@/store/cwd-store";
 import {
     createZapRequest,
     getZapFileContent,
 } from "@/file-system/fs-operation";
-import { useZapRequest } from "@/store/request-store";
 import { Plus } from "lucide-react";
+import { useTabsStore } from "@/store/new/tabs-store";
+import { FileSystemOperations } from "@/lib/fs/fs";
+import { useFileSystemStore } from "@/store/new/file-system";
+import { useCwdStore } from "@/store/new/cwd-store";
 
 export default function PlaygroundTabs() {
-    const tabs = useTabsStore((state) => state.tabs);
-    const addNewTab = useTabsStore((state) => state.addNewTab);
-
-    const setRequest = useZapRequest((state) => state.setRequest);
-    const workspace = useCwdStore((state) => state.name);
-    const triggerWorkspaceUpdate = useCwdStore(
-        (state) => state.triggerWorkspaceUpdate,
-    );
-    const setSelectedFile = useCwdStore((state) => state.setSelectedFile);
+    const workspace = useCwdStore().workspace;
+    const tabs = useTabsStore().tabs;
+    const setActiveFile = useFileSystemStore().setActiveFile;
 
     async function handleNewTab() {
         const name = `NEW_REQUEST_${Date.now()}`;
@@ -27,13 +22,14 @@ export default function PlaygroundTabs() {
         if (!workspace) return;
 
         await createZapRequest(name, workspace);
-        const content = await getZapFileContent(`${workspace}/${name}.json`);
+        // const content = await getZapFileContent(`${workspace}/${name}.json`);
 
-        const json = JSON.parse(content.message);
-        setRequest(json, workspace);
-        addNewTab({ name: `${name}.json`, path: `${workspace}/${name}.json` });
-        setSelectedFile(`${workspace}/${name}.json`, content.message);
-        triggerWorkspaceUpdate();
+        // const json = JSON.parse(content.message);
+        // setRequest(json, workspace);
+        FileSystemOperations.createFileAndOpenTab(workspace, name);
+        console.log("NEW", `${workspace}/${name}.json`);
+        setActiveFile(`${workspace}/${name}.json`);
+        // triggerWorkspaceUpdate();
     }
 
     return (
@@ -41,7 +37,12 @@ export default function PlaygroundTabs() {
             <ScrollArea className="flex-1 whitespace-nowrap w-2.5">
                 <div className="flex items-center ">
                     {tabs.map((tab, idx) => (
-                        <TabBlock key={idx} name={tab.name} path={tab.path} />
+                        <TabBlock
+                            key={idx}
+                            name={tab.name}
+                            path={tab.path}
+                            method={tab.method}
+                        />
                     ))}
                 </div>
                 <ScrollBar orientation="horizontal" />

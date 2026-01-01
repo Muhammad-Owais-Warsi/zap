@@ -7,25 +7,18 @@ import {
     DialogTrigger,
     DialogClose,
 } from "../ui/dialog";
-import {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-    TooltipProvider,
-} from "../ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Folder } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useCwdStore } from "@/store/cwd-store";
 import { createZapFolder } from "@/file-system/fs-operation";
+import { FileSystemOperations } from "@/lib/fs/fs";
+import { useCwdStore } from "@/store/new/cwd-store";
 
 export default function CreateFolder() {
-    const workspace = useCwdStore((state) => state.name);
-    const triggerWorkspaceUpdate = useCwdStore(
-        (state) => state.triggerWorkspaceUpdate,
-    );
+    const workspace = useCwdStore().workspace;
     const [folderName, setFolderName] = useState("");
     const [open, setOpen] = useState(false);
 
@@ -33,8 +26,10 @@ export default function CreateFolder() {
         if (!folderName.trim()) return;
         const name = `${folderName.trim()}-[${Date.now()}]`;
         if (workspace) await createZapFolder(name, workspace);
+        if (workspace)
+            FileSystemOperations.createFolderAndOpenTab(workspace, name);
         setFolderName("");
-        triggerWorkspaceUpdate();
+        setOpen(false);
     };
 
     useEffect(() => {

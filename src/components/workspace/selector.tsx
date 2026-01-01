@@ -2,27 +2,31 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useCwdStore } from "../../store/cwd-store";
+// import { useCwdStore } from "../../store/cwd-store";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { useTabsStore } from "@/store/tabs-store";
+// import { useTabsStore } from "@/store/tabs-store";
 import {
     createZapWorkspace,
     getZapFileContent,
 } from "@/file-system/fs-operation";
+import { useCwdStore } from "@/store/new/cwd-store";
 
 export default function WorkspaceSelector() {
-    const name = useCwdStore((state) => state.name);
-    const setWorkspaceConfig = useCwdStore((state) => state.setWorkspaceConfig);
-    const updateName = useCwdStore((state) => state.updateName);
-    const setWorkspaces = useCwdStore((state) => state.setWorkspaces);
-    const resetCwdStore = useCwdStore((state) => state.resetCwdStore);
-    const resetTabsStore = useTabsStore((state) => state.resetTabStore);
+    const setWorkspace = useCwdStore().setWorkspace;
+    const setWorkspaceConfig = useCwdStore().setWorkspaceConfig;
+    // const name = useCwdStore((state) => state.name);
+    // const setWorkspaceConfig = useCwdStore((state) => state.setWorkspaceConfig);
+    // const updateName = useCwdStore((state) => state.updateName);
+    // const setWorkspaces = useCwdStore((state) => state.setWorkspaces);
+    // const resetCwdStore = useCwdStore((state) => state.resetCwdStore);
+    // const resetTabsStore = useTabsStore((state) => state.resetTabStore);
     const { workspaces, loading } = useWorkspace();
     const [newWorkspace, setNewWorkspace] = useState("");
 
-    useEffect(() => {
-        setWorkspaces(workspaces);
-    }, [workspaces]);
+    // I think this is not needed
+    // useEffect(() => {
+    //     setWorkspaces(workspaces);
+    // }, [workspaces]);
 
     const handleSelect = async (workspace: string) => {
         const content = await getZapFileContent(
@@ -30,7 +34,7 @@ export default function WorkspaceSelector() {
         );
         // console.log(content);
         setWorkspaceConfig(JSON.parse(content.message));
-        updateName(workspace);
+        setWorkspace(workspace);
     };
 
     // workspace config setting logic to local storage
@@ -41,11 +45,11 @@ export default function WorkspaceSelector() {
             `${newWorkspace}/workspace_config.json`,
         );
         setWorkspaceConfig(JSON.parse(content.message));
-        updateName(newWorkspace);
+        setWorkspace(newWorkspace);
         setNewWorkspace("");
-        resetCwdStore();
-        resetTabsStore();
-        updateName(newWorkspace);
+        // resetCwdStore();
+        // resetTabsStore();
+        setWorkspace(newWorkspace);
     };
 
     if (loading) return <div className="text-center mt-10">Loading...</div>;

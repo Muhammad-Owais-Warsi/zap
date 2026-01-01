@@ -1,9 +1,11 @@
+import { ZapHttpMethods } from "@/types/request";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type TabInfo = {
     name: string;
     path: string;
+    method?: ZapHttpMethods;
 };
 
 interface Tabs {

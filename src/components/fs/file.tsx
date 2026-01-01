@@ -7,41 +7,31 @@ import {
     DialogTrigger,
     DialogClose,
 } from "../ui/dialog";
-import {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-    TooltipProvider,
-} from "../ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { File } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useCwdStore } from "@/store/cwd-store";
 import { createZapRequest } from "@/file-system/fs-operation";
-import {
-    SelectTrigger,
-    Select,
-    SelectContent,
-    SelectValue,
-    SelectGroup,
-    SelectItem,
-} from "../ui/select";
+import { FileSystemOperations } from "@/lib/fs/fs";
+import { useCwdStore } from "@/store/new/cwd-store";
 
 export default function CreateRequest() {
-    const workspace = useCwdStore((state) => state.name);
-    const triggerWorkspaceUpdate = useCwdStore(
-        (state) => state.triggerWorkspaceUpdate,
-    );
+    const workspace = useCwdStore().workspace;
     const [fileName, setFileName] = useState("");
     const [open, setOpen] = useState(false);
 
     const handleCreateFile = async () => {
         if (!fileName.trim()) return;
         if (workspace) await createZapRequest(fileName.trim(), workspace);
+        if (workspace)
+            FileSystemOperations.createFileAndOpenTab(
+                workspace,
+                fileName.trim(),
+            );
         setFileName("");
-        triggerWorkspaceUpdate();
+        setOpen(false);
     };
 
     useEffect(() => {
