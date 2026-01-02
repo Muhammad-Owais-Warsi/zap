@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import { ChevronRight, Plus, Folder } from "lucide-react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-
 import {
     Collapsible,
     CollapsibleContent,
@@ -27,12 +26,10 @@ import { Button } from "../ui/button";
 import MethodBadge from "../theme/method-badge";
 
 import { type entriesType } from "@/hooks/useWorkspace";
-import { useZapRequest } from "@/store/request-store";
 import { IGNORED_FILES } from "@/lib/ignored-files";
 import ignoreExt from "@/lib/ignore-extension";
 import {
     createZapRequest,
-    getZapFileContent,
     moveZapRequest,
     removeZapFileOrFolder,
     renameZapFolder,
@@ -45,7 +42,6 @@ import { useFileSystemStore } from "@/store/new/file-system";
 
 type DragItem = { path: string; isDir: boolean; name: string };
 
-// CORRECT THE LOGIC OF ACTIVE FILE HERE
 const DraggableFile = ({
     file,
     onFileClick,
@@ -282,42 +278,24 @@ function NavMainContent({
     workspace: string;
 }) {
     const setActiveFile = useFileSystemStore().setActiveFile;
-    const setRequest = useZapRequest((state) => state.setRequest);
 
     const setActiveTab = useTabsStore().setActiveTab;
 
     const handleFileClick = useCallback(
         async (path: string, name: string, method?: ZapHttpMethods) => {
-            try {
-                const content = await getZapFileContent(path);
-                const parsed = JSON.parse(content.message);
-                setActiveFile(path);
-                // setRequest(parsed, path);
-                setActiveTab(path, name, method);
-            } catch (err) {
-                console.error("Load failed", err);
-            }
+            await FileSystemOperations.selectFileAndHandleTab(
+                path,
+                name,
+                method,
+            );
         },
-        [setActiveFile, setRequest, setActiveTab],
+        [setActiveFile, setActiveTab],
     );
 
-    // check for existing tabs open
     const handleFolderClick = useCallback(
         async (path: string) => {
             const readme = `${path}/README.md`;
-            try {
-                const content = await getZapFileContent(readme);
-                setActiveFile(readme);
-                if (content.type === "success")
-                    setActiveTab(
-                        readme,
-                        "README.md",
-                        undefined,
-                        content.message,
-                    );
-            } catch {
-                /* No readme found */
-            }
+            await FileSystemOperations.selectFolderAndHandleTab(readme);
         },
         [setActiveFile, setActiveTab],
     );

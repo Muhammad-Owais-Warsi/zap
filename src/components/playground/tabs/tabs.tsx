@@ -1,10 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import TabBlock from "./tab-block";
-import {
-    createZapRequest,
-    getZapFileContent,
-} from "@/file-system/fs-operation";
+import { createZapRequest } from "@/file-system/fs-operation";
 import { Plus } from "lucide-react";
 import { useTabsStore } from "@/store/new/tabs-store";
 import { FileSystemOperations } from "@/lib/fs/fs";
@@ -22,14 +19,9 @@ export default function PlaygroundTabs() {
         if (!workspace) return;
 
         await createZapRequest(name, workspace);
-        // const content = await getZapFileContent(`${workspace}/${name}.json`);
-
-        // const json = JSON.parse(content.message);
-        // setRequest(json, workspace);
         FileSystemOperations.createFileAndOpenTab(workspace, name);
         console.log("NEW", `${workspace}/${name}.json`);
         setActiveFile(`${workspace}/${name}.json`);
-        // triggerWorkspaceUpdate();
     }
 
     return (

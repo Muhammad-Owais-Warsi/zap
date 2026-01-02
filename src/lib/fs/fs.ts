@@ -1,8 +1,10 @@
+import { getZapFileContent } from "@/file-system/fs-operation";
 import { useFileSystemStore } from "@/store/new/file-system";
 import { useTabsStore } from "@/store/new/tabs-store";
 import { ZapHttpMethods } from "@/types/request";
 
 export const FileSystemOperations = {
+    // check exist or not
     createFileAndOpenTab(parentPath: string, name: string) {
         const fs = useFileSystemStore.getState();
         const tabs = useTabsStore.getState();
@@ -20,7 +22,7 @@ export const FileSystemOperations = {
     clickTabAndSetActiveFile(
         path: string,
         name: string,
-        method: ZapHttpMethods,
+        method?: ZapHttpMethods,
     ) {
         const fs = useFileSystemStore.getState();
         const tabs = useTabsStore.getState();
@@ -72,5 +74,45 @@ export const FileSystemOperations = {
 
         tabs.renameTabPath(oldPath, newName, isDir);
         fs.renameFileOrFolder(oldPath, newName);
+    },
+    async selectFileAndHandleTab(
+        path: string,
+        name: string,
+        method?: ZapHttpMethods,
+    ) {
+        const fs = useFileSystemStore.getState();
+        const tabs = useTabsStore.getState();
+
+        if (!tabs.checkExist(path)) {
+            const content = await getZapFileContent(path);
+            fs.setActiveFile(path);
+            if (content.type === "success") {
+                tabs.setActiveTab(path, name, method, content.message);
+            } else {
+                fs.setActiveFile(path);
+                tabs.setActiveTab(path, name, method);
+            }
+        }
+    },
+    async selectFolderAndHandleTab(path: string) {
+        const fs = useFileSystemStore.getState();
+        const tabs = useTabsStore.getState();
+
+        if (!tabs.checkExist(path)) {
+            console.log("content fetched");
+            const content = await getZapFileContent(path);
+            fs.setActiveFile(path);
+            if (content.type === "success") {
+                tabs.setActiveTab(
+                    path,
+                    "README.md",
+                    undefined,
+                    content.message,
+                );
+            }
+        } else {
+            fs.setActiveFile(path);
+            tabs.setActiveTab(path, "README.md");
+        }
     },
 };

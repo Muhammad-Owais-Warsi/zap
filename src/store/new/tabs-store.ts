@@ -23,6 +23,7 @@ interface TabsStore {
         content?: string,
     ) => void;
     addTab: (path: string, name: string, method?: ZapHttpMethods) => void;
+    checkExist: (path: string) => boolean;
     closeTab: (path: string) => void;
     renameTabPath: (oldPath: string, newPath: string, isDir: boolean) => void;
     updateTabPath: (oldPath: string, newPath: string) => void;
@@ -30,14 +31,14 @@ interface TabsStore {
 
 export const useTabsStore = createSelectors(
     create<TabsStore>()(
-        immer((set) => ({
+        immer((set, get) => ({
             activeTab: undefined,
             tabs: [],
 
             setActiveTab: (path, name, method, content) =>
                 set((state) => {
                     const existing = state.tabs.find((t) => t.path === path);
-
+                    console.log(existing);
                     if (!existing) {
                         if (state.tabs.length >= MAX_OPEN_TABS) {
                             state.tabs.shift();
@@ -46,10 +47,15 @@ export const useTabsStore = createSelectors(
                         state.tabs.push(newTab);
                         state.activeTab = newTab;
                     } else {
+                        console.log("found existing");
                         existing.method = method;
                         state.activeTab = existing;
                     }
                 }),
+
+            checkExist: (path) => {
+                return get().tabs.some((tab) => tab.path === path);
+            },
 
             addTab: (path, name, method) =>
                 set((state) => {

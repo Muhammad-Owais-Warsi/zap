@@ -35,7 +35,7 @@ export function create_workspcae_config_content(name: string, path: string) {
 export function create_folder_config_content(name: string, path: string) {
     const CREATE_FOLDER_CONFIG_CONTENT: ZapFolderConfig = {
         name: name,
-        path: path,
+        // path: path,
         type: "folder",
         // variables: [],
     };
@@ -46,7 +46,7 @@ export function create_folder_config_content(name: string, path: string) {
 export function create_file_config_content(name: string, path: string) {
     const CREATE_FILE_CONTENT: ZapFileConfig = {
         name: name,
-        path: path,
+        // path: path,
         type: "file",
         content: {
             url: "",

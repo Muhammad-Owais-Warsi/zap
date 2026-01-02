@@ -63,14 +63,14 @@ export type ZapWorkspaceConfig = {
 export type ZapFileConfig = {
     name: string;
     type: "file";
-    path: string;
+    // path: string;
     content: ZapRequest;
 };
 
 export type ZapFolderConfig = {
     name: string;
     type: "folder";
-    path: string;
+    // path: string;
     // variables: ZapVariables[];
     // children: ZapFileNode[];
 };
