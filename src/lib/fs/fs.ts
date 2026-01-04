@@ -4,7 +4,6 @@ import { useTabsStore } from "@/store/new/tabs-store";
 import { ZapHttpMethods } from "@/types/request";
 
 export const FileSystemOperations = {
-    // check exist or not
     createFileAndOpenTab(parentPath: string, name: string) {
         const fs = useFileSystemStore.getState();
         const tabs = useTabsStore.getState();
@@ -12,12 +11,17 @@ export const FileSystemOperations = {
         fs.createFile(name, parentPath);
         tabs.addTab(`${parentPath}/${name}.json`, `${name}.json`, "GET");
     },
-    createFolderAndOpenTab(parentPath: string, name: string) {
+    createFolderAndOpenTab(parentPath: string, name: string, content: string) {
         const fs = useFileSystemStore.getState();
         const tabs = useTabsStore.getState();
 
         fs.createFolder(name, parentPath);
-        tabs.addTab(`${parentPath}/README.md`, "README.md");
+        tabs.addTab(
+            `${parentPath}/${name}/README.md`,
+            "README.md",
+            undefined,
+            content,
+        );
     },
     clickTabAndSetActiveFile(
         path: string,

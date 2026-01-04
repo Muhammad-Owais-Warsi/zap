@@ -163,7 +163,7 @@ export const useFileSystemStore = createSelectors(
             deleteFolder: (path) =>
                 set((state) => {
                     state.files = removeFileFromTree(state.files, path);
-                    if (state.activeFile === path) {
+                    if (state.activeFile?.startsWith(path)) {
                         state.activeFile = undefined;
                     }
                 }),

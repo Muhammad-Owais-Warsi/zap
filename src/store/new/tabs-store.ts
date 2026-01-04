@@ -22,7 +22,12 @@ interface TabsStore {
         method?: ZapHttpMethods,
         content?: string,
     ) => void;
-    addTab: (path: string, name: string, method?: ZapHttpMethods) => void;
+    addTab: (
+        path: string,
+        name: string,
+        method?: ZapHttpMethods,
+        content?: string,
+    ) => void;
     checkExist: (path: string) => boolean;
     closeTab: (path: string) => void;
     renameTabPath: (oldPath: string, newPath: string, isDir: boolean) => void;
@@ -57,12 +62,13 @@ export const useTabsStore = createSelectors(
                 return get().tabs.some((tab) => tab.path === path);
             },
 
-            addTab: (path, name, method) =>
+            addTab: (path, name, method, content) =>
                 set((state) => {
                     const newTab: Tab = {
                         name,
                         path,
                         method,
+                        content,
                     };
                     if (state.tabs.length >= MAX_OPEN_TABS) {
                         state.tabs.shift();
@@ -74,19 +80,26 @@ export const useTabsStore = createSelectors(
 
             closeTab: (path) =>
                 set((state) => {
-                    const index = state.tabs.findIndex((t) => t.path === path);
-                    if (index === -1) return;
+                    const toClose = state.tabs
+                        .filter(
+                            (t) =>
+                                t.path === path ||
+                                t.path.startsWith(path + "/"),
+                        )
+                        .map((t) => t.path);
 
-                    const wasActive = state.activeTab?.path === path;
-                    state.tabs.splice(index, 1);
+                    state.tabs = state.tabs.filter(
+                        (t) => !toClose.includes(t.path),
+                    );
 
-                    if (wasActive) {
+                    if (
+                        state.activeTab &&
+                        toClose.includes(state.activeTab.path)
+                    ) {
                         if (state.tabs.length === 0) {
                             state.activeTab = undefined;
-                        } else if (index > 0) {
-                            state.activeTab = state.tabs[index - 1];
                         } else {
-                            state.activeTab = state.tabs[0];
+                            state.activeTab = state.tabs[state.tabs.length - 1];
                         }
                     }
                 }),

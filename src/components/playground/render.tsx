@@ -13,15 +13,6 @@ import { useTabsStore } from "@/store/new/tabs-store";
 export default function Render() {
     const activeFile = useFileSystemStore().activeFile;
     const activeTab = useTabsStore().activeTab;
-    const [cleanedMarkdown, setCleanedMarkdown] = useState<string>(
-        "Cant render markdown",
-    );
-
-    useEffect(() => {
-        if (activeFile?.endsWith("README.md")) {
-            setCleanedMarkdown(cleanString(activeTab?.content));
-        }
-    }, [activeFile]);
 
     const handleSave = async (content: string) => {
         const cleaned_content = cleanString(content);
@@ -38,7 +29,7 @@ export default function Render() {
                 {activeFile?.includes("README.md") ? (
                     <div className="p-6 overflow-auto flex-1">
                         <MarkdownEditor
-                            initialContent={cleanedMarkdown}
+                            initialContent={cleanString(activeTab?.content)}
                             onSave={handleSave}
                         />
                     </div>

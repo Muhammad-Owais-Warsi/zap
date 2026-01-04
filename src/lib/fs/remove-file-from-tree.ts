@@ -5,7 +5,10 @@ export function removeFileFromTree(
     path: string,
 ): entriesType[] {
     return tree
-        .filter((entry) => entry.path !== path)
+        .filter(
+            (entry) =>
+                entry.path !== path && !entry.path.startsWith(path + "/"),
+        )
         .map((entry) =>
             entry.is_dir && entry.items
                 ? { ...entry, items: removeFileFromTree(entry.items, path) }

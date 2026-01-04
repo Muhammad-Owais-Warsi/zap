@@ -25,9 +25,15 @@ export default function CreateFolder() {
     const handleCreateFolder = async () => {
         if (!folderName.trim()) return;
         const name = `${folderName.trim()}-[${Date.now()}]`;
-        if (workspace) await createZapFolder(name, workspace);
-        if (workspace)
-            FileSystemOperations.createFolderAndOpenTab(workspace, name);
+        if (workspace) {
+            const res = await createZapFolder(name, workspace);
+            FileSystemOperations.createFolderAndOpenTab(
+                workspace,
+                name,
+                res.message,
+            );
+        }
+
         setFolderName("");
         setOpen(false);
     };
