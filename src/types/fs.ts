@@ -3,7 +3,6 @@ import {
     ZapEnvironment,
     ZapHttpMethods,
     ZapRequest,
-    ZapVariables,
 } from "./request";
 
 // PROBLEM TO SOLVE

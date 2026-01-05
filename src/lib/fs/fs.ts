@@ -92,10 +92,10 @@ export const FileSystemOperations = {
             fs.setActiveFile(path);
             if (content.type === "success") {
                 tabs.setActiveTab(path, name, method, content.message);
-            } else {
-                fs.setActiveFile(path);
-                tabs.setActiveTab(path, name, method);
             }
+        } else {
+            fs.setActiveFile(path);
+            tabs.setActiveTab(path, name, method);
         }
     },
     async selectFolderAndHandleTab(path: string) {
@@ -118,5 +118,12 @@ export const FileSystemOperations = {
             fs.setActiveFile(path);
             tabs.setActiveTab(path, "README.md");
         }
+    },
+    updateFileAndTabMethod(path: string, method: ZapHttpMethods) {
+        const fs = useFileSystemStore.getState();
+        const tabs = useTabsStore.getState();
+
+        fs.updateMethod(path, method);
+        tabs.updateTabMethod(path, method);
     },
 };

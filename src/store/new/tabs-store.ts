@@ -10,6 +10,7 @@ type Tab = {
     path: string;
     method?: ZapHttpMethods;
     content?: string;
+    isDirty?: boolean;
 };
 
 interface TabsStore {
@@ -32,6 +33,9 @@ interface TabsStore {
     closeTab: (path: string) => void;
     renameTabPath: (oldPath: string, newPath: string, isDir: boolean) => void;
     updateTabPath: (oldPath: string, newPath: string) => void;
+    updateTabMethod: (path: string, mathod: ZapHttpMethods) => void;
+    updateTabContent: (path: string, content: string) => void;
+    updateIsDirty: (path: string, isDirty: boolean) => void;
 }
 
 export const useTabsStore = createSelectors(
@@ -69,6 +73,7 @@ export const useTabsStore = createSelectors(
                         path,
                         method,
                         content,
+                        isDirty: false,
                     };
                     if (state.tabs.length >= MAX_OPEN_TABS) {
                         state.tabs.shift();
@@ -116,6 +121,42 @@ export const useTabsStore = createSelectors(
                             path: newPath,
                         };
                     }
+                }),
+
+            updateTabMethod: (path, method) =>
+                set((state) => {
+                    const tab = state.tabs.find((t) => t.path === path);
+                    if (tab) {
+                        tab.method = method;
+                        tab.isDirty = true;
+                    }
+                    if (state.activeTab?.path === path) {
+                        state.activeTab.method = method;
+                        state.activeTab.isDirty = true;
+                    }
+                }),
+
+            updateTabContent: (path, content) =>
+                set((state) => {
+                    const tab = state.tabs.find((t) => t.path === path);
+                    if (tab) {
+                        tab.content = content;
+                        tab.isDirty = true;
+                    }
+                    if (state.activeTab?.path === path) {
+                        state.activeTab.content = content;
+                        state.activeTab.isDirty = true;
+                    }
+                }),
+
+            updateIsDirty: (path, isDirty) =>
+                set((state) => {
+                    const tab = state.tabs.find((t) => t.path === path);
+                    if (tab) {
+                        tab.isDirty = isDirty;
+                    }
+                    if (state.activeTab?.path === path)
+                        state.activeTab.isDirty = isDirty;
                 }),
 
             renameTabPath: (oldPath: string, newName: string, isDir: boolean) =>

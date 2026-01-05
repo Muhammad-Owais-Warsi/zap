@@ -6,6 +6,7 @@ import { addFileToTree } from "@/lib/fs/add-file-to-tree";
 import { removeFileFromTree } from "@/lib/fs/remove-file-from-tree";
 import { getFileByPath } from "@/lib/fs/get-file-by-path";
 import { renameEntryInTree } from "@/lib/fs/fs-rename";
+import { ZapHttpMethods } from "@/types/request";
 
 interface FileSystemStore {
     files: entriesType[];
@@ -16,6 +17,8 @@ interface FileSystemStore {
 
     createFile: (name: string, parentPath: string) => void;
     moveFile: (oldPath: string, newPath: string) => void;
+    getFile: (path: string) => void;
+    updateMethod: (path: string, method: ZapHttpMethods) => void;
     renameFileOrFolder: (oldPath: string, newName: string) => void;
     deleteFile: (path: string) => void;
     createFolder: (name: string, parentPath: string) => void;
@@ -63,6 +66,18 @@ export const useFileSystemStore = createSelectors(
                     }
 
                     state.activeFile = newEntry.path;
+                }),
+
+            getFile: (path) => {
+                return getFileByPath(get().files, path);
+            },
+
+            updateMethod: (path, method) =>
+                set((state) => {
+                    const file = getFileByPath(state.files, path);
+                    if (file) {
+                        file.method = method;
+                    }
                 }),
 
             moveFile: (oldPath, newPath) =>

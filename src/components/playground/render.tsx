@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-// import { useCwdStore } from "@/store/cwd-store";
 import PlaygroundTabs from "./tabs/tabs";
 import PlaygroundMainInput from "./input/main";
 import PlaygroundMainConfig from "./config/main";
