@@ -2,9 +2,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { basicEditor } from "prism-code-editor/setups";
 
 import "prism-code-editor/prism/languages/json";
-import "prism-code-editor/prism/languages/javascript";
-import "prism-code-editor/prism/languages/markup"; // covers HTML + XML
-// import "prism-code-editor/prism/languages/plaintext";
 
 import "prism-code-editor/themes/github-dark.css";
 import "prism-code-editor/themes/github-light.css";
@@ -22,7 +19,7 @@ type JsonEditorProps = {
 };
 
 export default function JsonEditor({
-    value = "",
+    value,
     onChange,
     height = "400px",
     // readOnly = false,
@@ -41,8 +38,15 @@ export default function JsonEditor({
                 setIsValid(true);
                 return;
             }
+
+            // Empty or whitespace-only strings are valid
+            if (!code || !code.trim()) {
+                setIsValid(true);
+                return;
+            }
+
             try {
-                if (code.trim()) JSON.parse(code);
+                JSON.parse(code);
                 setIsValid(true);
             } catch {
                 setIsValid(false);
@@ -52,24 +56,24 @@ export default function JsonEditor({
     );
 
     useEffect(() => {
-        console.log("editor", value);
         if (!containerRef.current || isInitializedRef.current) return;
 
-        theme === "dark" ? "github-dark" : "github-light";
+        // Ensure value is always a string
+        const stringValue =
+            typeof value === "string"
+                ? value
+                : value
+                  ? JSON.stringify(value, null, 2)
+                  : "";
 
         const editor = basicEditor(containerRef.current, {
             language,
-            value: value || "",
+            value: stringValue,
             lineNumbers: true,
             // readOnly,
             wordWrap: false,
             tabSize: 2,
             insertSpaces: true,
-            autoIndent: true,
-            // theme: theme,
-        });
-
-        editor.setOptions({
             theme: theme === "dark" ? "github-dark" : "github-light",
         });
 
@@ -85,7 +89,7 @@ export default function JsonEditor({
         };
 
         editor.on("update", handleInput);
-        validateJson(editor.value);
+        validateJson(stringValue);
 
         setTimeout(() => {
             isInitializing = false;
@@ -106,11 +110,19 @@ export default function JsonEditor({
 
     useEffect(() => {
         if (editorRef.current && isInitializedRef.current) {
+            // Ensure value is always a string
+            const stringValue =
+                typeof value === "string"
+                    ? value
+                    : value
+                      ? JSON.stringify(value, null, 2)
+                      : "";
             const currentValue = editorRef.current.value;
-            if (currentValue !== value) {
+
+            if (currentValue !== stringValue) {
                 // Use the correct method to set value instead of direct assignment
-                editorRef.current.update(value || "");
-                validateJson(value || "");
+                editorRef.current.update(stringValue);
+                validateJson(stringValue);
             }
         }
     }, [value, validateJson]);

@@ -1,30 +1,8 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useZapRequest } from "@/store/request-store";
-import { Plus } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import {
-    flexRender,
-    getCoreRowModel,
-    useReactTable,
-    ColumnDef,
-} from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupButton,
-    InputGroupInput,
-} from "@/components/ui/input-group";
 import {
     Select,
     SelectContent,
@@ -32,404 +10,290 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { fileToString, stringToFile } from "@/lib/fs/file-to-string";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { useTabsStore } from "@/store/new/tabs-store";
+import type { ZapRequest, ZapFormDataBodyType } from "@/types/request";
 
 export interface FormDataRow {
     id: string;
     key: string;
-    value: string | File;
+    value: string;
     type: "text" | "file";
-    description: string;
     enabled: boolean;
 }
 
-export default function PlaygroundBodyFormData({ path }: { path: string }) {
-    const getRequest = useZapRequest((state) => state.getRequest);
-    const setHeaders = useZapRequest((state) => state.setHeaders);
-    const setBody = useZapRequest((state) => state.setBody);
-
+export default function PlaygroundBodyFormData() {
+    const activeTab = useTabsStore().activeTab;
+    const updateTabContent = useTabsStore().updateTabContent;
     const [data, setData] = useState<FormDataRow[]>([]);
+    const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useEffect(() => {
-        if (!path) return;
-        const req = getRequest(path);
+        if (activeTab?.content && typeof activeTab.content === "string") {
+            try {
+                const fileConfig = JSON.parse(activeTab.content);
+                const req = fileConfig.content as ZapRequest;
 
-        if (!req?.body) {
+                if (
+                    !req?.body?.["form-data"] ||
+                    !Array.isArray(req.body["form-data"])
+                ) {
+                    setData([]);
+                } else {
+                    const loaded = req.body["form-data"].map((item, idx) => ({
+                        id: idx.toString(),
+                        key: item.key,
+                        value: typeof item.value === "string" ? item.value : "",
+                        type: item.type || "text",
+                        enabled: item.enabled ?? true,
+                    }));
+                    setData(loaded);
+                }
+            } catch {
+                setData([]);
+            }
+        } else {
             setData([]);
-            return;
+        }
+    }, [activeTab?.path, activeTab?.content]);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
+    const persistFormData = (updatedData: FormDataRow[]) => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
         }
 
-        const loaded =
-            req.body?.body?.["form-data"]?.map((h, idx) => {
-                let processedValue: string | File = "";
-                let detectedType: "text" | "file" = "text";
+        timeoutRef.current = setTimeout(() => {
+            const currentTab = useTabsStore.getState().activeTab;
+            if (!currentTab?.content || typeof currentTab.content !== "string")
+                return;
 
-                if (typeof h.value === "string") {
-                    const deserializedFile = stringToFile(h.value);
-                    if (deserializedFile) {
-                        processedValue = deserializedFile;
-                        detectedType = "file";
-                    } else {
-                        processedValue = h.value;
-                        detectedType = "text";
-                    }
-                } else {
-                    processedValue = h.value || "";
-                    detectedType = h.value instanceof File ? "file" : "text";
-                }
+            try {
+                const fileConfig = JSON.parse(currentTab.content);
+                const req = fileConfig.content as ZapRequest;
 
-                return {
-                    id: idx.toString(),
-                    key: h.key,
-                    value: processedValue,
-                    type: h.type || detectedType,
-                    description: h.description ?? "",
-                    enabled: h.enabled ?? true,
-                };
-            }) ?? [];
-
-        setData(loaded);
-    }, [path, getRequest]);
-
-    const updateStore = useCallback(
-        async (rows: FormDataRow[]) => {
-            const activeParams = await Promise.all(
-                rows
-                    .filter((d) => d.key || d.value || d.description)
-                    .map(async (d) => ({
+                const formData: ZapFormDataBodyType[] = updatedData.map(
+                    (d) => ({
                         key: d.key,
-                        value:
-                            d.value instanceof File
-                                ? await fileToString(d.value)
-                                : d.value,
+                        value: d.value,
                         type: d.type,
-                        description: d.description,
                         enabled: d.enabled,
-                    })),
-            );
+                    }),
+                );
 
-            if (path) {
-                setBody("form-data", path, activeParams);
+                const updatedReq: ZapRequest = {
+                    ...req,
+                    body: {
+                        ...req.body,
+                        "form-data": formData,
+                    },
+                    currentBodyType: "form-data",
+                };
+
+                const updatedFileConfig = {
+                    ...fileConfig,
+                    content: updatedReq,
+                };
+
+                updateTabContent(
+                    currentTab.path,
+                    JSON.stringify(updatedFileConfig),
+                );
+            } catch (error) {
+                console.error("Failed to update form data:", error);
             }
-        },
-        [path, setBody],
-    );
+        }, 300);
+    };
 
-    const handleTypeChange = useCallback(
-        (id: string, type: "text" | "file") => {
-            setData((prev) => {
-                const updated = prev.map((row) =>
-                    row.id === id
-                        ? {
-                              ...row,
-                              type,
-                              value: "",
-                          }
-                        : row,
-                );
-                updateStore(updated);
-                return updated;
-            });
-        },
-        [updateStore],
-    );
+    const handleInputChange = (
+        id: string,
+        field: "key" | "value",
+        value: string,
+    ) => {
+        setData((prev) => {
+            const updated = prev.map((row) =>
+                row.id === id ? { ...row, [field]: value } : row,
+            );
+            persistFormData(updated);
+            return updated;
+        });
+    };
 
-    const handleInputChange = useCallback(
-        (
-            id: string,
-            field: "key" | "value" | "description",
-            value: string | File,
-        ) => {
-            setData((prev) => {
-                const updated = prev.map((row) =>
-                    row.id === id ? { ...row, [field]: value } : row,
-                );
-                updateStore(updated);
-                return updated;
-            });
-        },
-        [updateStore],
-    );
+    const handleTypeChange = (id: string, type: "text" | "file") => {
+        setData((prev) => {
+            const updated = prev.map((row) =>
+                row.id === id
+                    ? { ...row, type, value: type === "file" ? "" : row.value }
+                    : row,
+            );
+            persistFormData(updated);
+            return updated;
+        });
+    };
 
-    const handleFileChange = useCallback(
-        (id: string, file: File) => {
-            setData((prev) => {
-                const updated = prev.map((row) =>
-                    row.id === id ? { ...row, value: file } : row,
-                );
-                updateStore(updated);
-                return updated;
-            });
-        },
-        [updateStore],
-    );
+    const handleCheckboxChange = (id: string, checked: boolean) => {
+        setData((prev) => {
+            const updated = prev.map((row) =>
+                row.id === id ? { ...row, enabled: checked } : row,
+            );
+            persistFormData(updated);
+            return updated;
+        });
+    };
 
-    const handleCheckboxChange = useCallback(
-        (id: string, checked: boolean) => {
-            setData((prev) => {
-                const updated = prev.map((row) =>
-                    row.id === id ? { ...row, enabled: checked } : row,
-                );
-                updateStore(updated);
-                return updated;
-            });
-        },
-        [updateStore],
-    );
+    const handleDeleteRow = (id: string) => {
+        setData((prev) => {
+            const updated = prev.filter((row) => row.id !== id);
+            persistFormData(updated);
+            return updated;
+        });
+    };
 
-    const addRow = useCallback(() => {
+    const addRow = () => {
         const newRow: FormDataRow = {
             id: Date.now().toString(),
             key: "",
             value: "",
             type: "text",
-            description: "",
             enabled: true,
         };
         setData((prev) => {
-            const updated = [...prev, newRow];
-            updateStore(updated);
+            const updated = [newRow, ...prev];
+            persistFormData(updated);
             return updated;
         });
-    }, [updateStore]);
+    };
 
-    const columns = useMemo<ColumnDef<FormDataRow>[]>(
-        () => [
-            {
-                id: "select",
-                header: ({ table }) => (
-                    <Checkbox
-                        checked={table.getIsAllRowsSelected()}
-                        onCheckedChange={(value) =>
-                            table.toggleAllRowsSelected(!!value)
-                        }
-                        aria-label="Select all rows"
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={row.original.enabled}
-                        onCheckedChange={(value) =>
-                            handleCheckboxChange(row.original.id, !!value)
-                        }
-                    />
-                ),
-            },
-            {
-                accessorKey: "key",
-                header: "Key",
-                cell: ({ row }) => {
-                    return (
-                        <Input
-                            type="text"
-                            value={row.original.key}
-                            disabled={!row.original.enabled}
-                            placeholder="Key"
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "key",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    );
-                },
-            },
-            {
-                accessorKey: "value",
-                header: "Value",
-                cell: ({ row }) => {
-                    const isFileType = row.original.type === "file";
+    const handleSelectAll = (checked: boolean) => {
+        setData((prev) => {
+            const updated = prev.map((row) => ({ ...row, enabled: checked }));
+            persistFormData(updated);
+            return updated;
+        });
+    };
 
-                    return (
-                        <InputGroup>
-                            {isFileType ? (
-                                <div className="flex flex-col gap-1 flex-1">
-                                    <InputGroupInput
-                                        type="file"
-                                        disabled={!row.original.enabled}
-                                        className="pl-1!"
-                                        onChange={async (e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                handleFileChange(
-                                                    row.original.id,
-                                                    file,
-                                                );
-                                            }
-                                        }}
-                                    />
-                                </div>
+    const allEnabled = data.length > 0 && data.every((row) => row.enabled);
+    const someEnabled = data.some((row) => row.enabled);
+
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 mb-2 justify-end">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={addRow}
+                    className="flex items-center"
+                >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Field
+                </Button>
+                <Checkbox
+                    checked={allEnabled}
+                    indeterminate={!allEnabled && someEnabled}
+                    onCheckedChange={(value) => handleSelectAll(!!value)}
+                    className="ml-2"
+                />
+                <span className="text-sm">Select All</span>
+            </div>
+            <div className="flex flex-col gap-2">
+                {data.length === 0 && (
+                    <div className="text-center text-muted-foreground py-4">
+                        No fields added
+                    </div>
+                )}
+                {data.map((row) => (
+                    <div key={row.id}>
+                        <div className="flex flex-col md:flex-row gap-2 items-center p-3 bg-background">
+                            <Checkbox
+                                checked={row.enabled}
+                                onCheckedChange={(value) =>
+                                    handleCheckboxChange(row.id, !!value)
+                                }
+                                className="mr-2"
+                            />
+                            <Input
+                                type="text"
+                                value={row.key}
+                                disabled={!row.enabled}
+                                placeholder="Key"
+                                className="flex-1 min-w-0"
+                                onChange={(e) =>
+                                    handleInputChange(
+                                        row.id,
+                                        "key",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            {row.type === "file" ? (
+                                <Input
+                                    type="file"
+                                    disabled={!row.enabled}
+                                    className="flex-1 min-w-0"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const filePath =
+                                                (file as any).path ||
+                                                file.webkitRelativePath ||
+                                                file.name;
+                                            handleInputChange(
+                                                row.id,
+                                                "value",
+                                                filePath,
+                                            );
+                                        }
+                                    }}
+                                />
                             ) : (
-                                <InputGroupInput
+                                <Input
                                     type="text"
-                                    value={row.original.value}
-                                    disabled={!row.original.enabled}
+                                    value={row.value}
+                                    disabled={!row.enabled}
                                     placeholder="Value"
-                                    className="pl-1!"
+                                    className="flex-1 min-w-0"
                                     onChange={(e) =>
                                         handleInputChange(
-                                            row.original.id,
+                                            row.id,
                                             "value",
                                             e.target.value,
                                         )
                                     }
                                 />
                             )}
-
-                            <InputGroupAddon
-                                align="inline-end"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <Select
-                                    value={row.original.type}
-                                    onValueChange={(value: "text" | "file") => {
-                                        handleTypeChange(
-                                            row.original.id,
-                                            value,
-                                        );
-                                    }}
-                                >
-                                    <SelectTrigger className="h-auto border-0 bg-transparent shadow-none">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="text">
-                                            Text
-                                        </SelectItem>
-                                        <SelectItem value="file">
-                                            File
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </InputGroupAddon>
-                        </InputGroup>
-                    );
-                },
-            },
-
-            {
-                accessorKey: "description",
-                header: "Description",
-                cell: ({ row }) => {
-                    return (
-                        <InputGroup>
-                            <InputGroupInput
-                                value={row.original.description}
-                                disabled={!row.original.enabled}
-                                placeholder="Description"
-                                className="!pl-1"
-                                onChange={(e) =>
-                                    handleInputChange(
-                                        row.original.id,
-                                        "description",
-                                        e.target.value,
-                                    )
+                            <Select
+                                value={row.type}
+                                disabled={!row.enabled}
+                                onValueChange={(value: "text" | "file") =>
+                                    handleTypeChange(row.id, value)
                                 }
-                            />
-                            <InputGroupAddon align="inline-end">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <InputGroupButton
-                                            className="rounded-full"
-                                            size="icon-xs"
-                                        >
-                                            <Info />
-                                        </InputGroupButton>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        {row.original.description}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </InputGroupAddon>
-                        </InputGroup>
-                    );
-                },
-            },
-            {
-                id: "add",
-                header: () => (
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={addRow}
-                        className="ml-auto"
-                    >
-                        <Plus className="h-4 w-4" />
-                    </Button>
-                ),
-                cell: () => null,
-            },
-        ],
-        [handleInputChange, handleCheckboxChange, addRow],
-    );
-
-    const table = useReactTable({
-        data,
-        columns,
-        getRowId: (row) => row.id,
-        getCoreRowModel: getCoreRowModel(),
-    });
-
-    return (
-        <Tabs defaultValue="table">
-            <TabsContent value="table" className="flex flex-col gap-4">
-                <div className="overflow-hidden rounded-lg border">
-                    <Table>
-                        <TableHeader>
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id}>
-                                            {flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext(),
-                                            )}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.length === 0 ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="text-center"
-                                    >
-                                        No fields added
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow
-                                        key={row.id}
-                                        data-state={
-                                            row.original.enabled && "selected"
-                                        }
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext(),
-                                                )}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </TabsContent>
-        </Tabs>
+                            >
+                                <SelectTrigger className="w-[100px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="text">Text</SelectItem>
+                                    <SelectItem value="file">File</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                className="ml-2"
+                                onClick={() => handleDeleteRow(row.id)}
+                            >
+                                <Trash2 className="w-4 h-4 text-red-600 hover:text-white" />
+                            </Button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

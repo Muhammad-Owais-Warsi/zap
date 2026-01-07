@@ -6,11 +6,11 @@ import {
     SidebarFooter,
     SidebarHeader,
 } from "@/components/ui/sidebar";
-import { entriesType, useWorkspaceRecursive } from "@/hooks/useWorkspace";
+import { useWorkspaceRecursive } from "@/hooks/useWorkspace";
 import SideHeaders from "./sidebar-header";
-import { useZapRequest } from "@/store/request-store";
+
 import { useEffect } from "react";
-import { IGNORED_FILES } from "@/lib/ignored-files";
+
 import { ModeToggle } from "../theme/theme-toggle";
 import SidebarSettings from "./sidebar-settings";
 import { useFileSystemStore } from "@/store/new/file-system";
@@ -21,7 +21,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ workspace, ...props }: AppSidebarProps) {
-    // const setPathAndName = useZapRequest((state) => state.setPathAndName);
     console.log("AppSidebar re-rendered");
     const { entries, loading } = useWorkspaceRecursive(workspace);
     console.log(entries);
@@ -29,7 +28,6 @@ export function AppSidebar({ workspace, ...props }: AppSidebarProps) {
     const files = useFileSystemStore((state) => state.files);
     console.log("HERE", files);
 
-    // Only set Zustand store the first time entries is loaded
     const initialized = useRef(false);
 
     useEffect(() => {
@@ -38,25 +36,6 @@ export function AppSidebar({ workspace, ...props }: AppSidebarProps) {
             initialized.current = true;
         }
     }, [entries, setAllEntries]);
-
-    // useEffect(() => {
-    //     function initRequests(items: entriesType[]) {
-    //         items
-    //             ?.filter((file) => !IGNORED_FILES.includes(file.name))
-    //             .forEach((file) => {
-    //                 if (!file.isDir) {
-    //                     setPathAndName(file.path, file.name);
-    //                 }
-
-    //                 if (file.isDir && file.items) {
-    //                     initRequests(file.items);
-    //                 }
-    //             });
-    //     }
-
-    //     initRequests(entries);
-    //     // setAllEntries(entries)
-    // }, [entries, setPathAndName]);
 
     if (loading)
         return (

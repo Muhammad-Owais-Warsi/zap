@@ -56,14 +56,9 @@ export function create_file_config_content(name: string, path: string) {
                 none: null,
                 "form-data": [],
                 "x-www-form-urlencoded": [],
-                raw: {
-                    text: "",
-                    json: "",
-                    javascript: "",
-                    html: "",
-                    xml: "",
-                },
+                raw: "",
             },
+            currentBodyType: "none",
             params: [],
             auth: {
                 type: "no-auth",

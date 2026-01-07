@@ -1,95 +1,88 @@
 import JsonEditor from "@/components/editor/editor";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { useZapRequest } from "@/store/request-store";
-import { ZapRawBodyTypeLanguage } from "@/types/request";
-import { useEffect } from "react";
-
-const LANGUAGES = [
-    { language: "json", title: "JSON" },
-    { language: "xml", title: "XML" },
-    { language: "html", title: "HTML" },
-    { language: "javascript", title: "JavaScript" },
-    { language: "text", title: "Plain Text" },
-];
+import { useTabsStore } from "@/store/new/tabs-store";
+import { useEffect, useState, useRef } from "react";
+import { ZapRequest } from "@/types/request";
 
 export default function PlaygroundBodyRaw({ path }: { path: string }) {
-    const storeLanguage = useZapRequest(
-        (state) => state.getRequest(path)?.body?.language ?? "text",
-    );
-
-    const setCurrentBody = useZapRequest((state) => state.setCurrentBody);
-
-    const [language, setLanguage] =
-        useState<ZapRawBodyTypeLanguage>(storeLanguage);
+    const activeTab = useTabsStore().activeTab;
+    const updateTabContent = useTabsStore().updateTabContent;
+    const [bodyContent, setBodyContent] = useState<string>("");
+    const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useEffect(() => {
-        setLanguage(storeLanguage);
-    }, [storeLanguage, path]);
+        if (activeTab?.content && typeof activeTab.content === "string") {
+            try {
+                const fileConfig = JSON.parse(activeTab.content);
+                const req = fileConfig.content as ZapRequest;
+                let rawBody = req?.body?.raw ?? "";
 
-    const bodyContent = useZapRequest((state) => {
-        const req = state.getRequest(path);
-        const body = req?.body;
+                if (typeof rawBody === "object" && rawBody !== null) {
+                    const values = Object.values(
+                        rawBody as Record<string, string>,
+                    );
+                    rawBody = values.find((v) => v && v.length > 0) || "";
+                }
 
-        console.log("HERE", body);
+                setBodyContent(rawBody);
+            } catch {
+                setBodyContent("");
+            }
+        } else {
+            setBodyContent("");
+        }
+    }, [activeTab?.path, activeTab?.content]);
 
-        const nested = body?.body?.raw?.[language];
-
-        const flat = body?.raw?.[language];
-
-        return nested ?? flat ?? "";
-    });
-
-    const setBody = useZapRequest((state) => state.setBody);
-
-    const handleLanguageSelect = (value: ZapRawBodyTypeLanguage) => {
-        setLanguage(value);
-
-        setCurrentBody("raw", path, value);
-    };
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleValueChange = (value: string) => {
-        setBody("raw", path, value, language);
+        setBodyContent(value);
+
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            const currentTab = useTabsStore.getState().activeTab;
+            if (!currentTab?.content || typeof currentTab.content !== "string")
+                return;
+
+            try {
+                const fileConfig = JSON.parse(currentTab.content);
+                const req = fileConfig.content as ZapRequest;
+
+                const updatedReq: ZapRequest = {
+                    ...req,
+                    body: {
+                        ...req.body,
+                        raw: value,
+                    },
+                    currentBodyType: "raw",
+                };
+
+                const updatedFileConfig = {
+                    ...fileConfig,
+                    content: updatedReq,
+                };
+
+                updateTabContent(path, JSON.stringify(updatedFileConfig));
+            } catch (error) {
+                console.error("Failed to update raw body:", error);
+            }
+        }, 300);
     };
 
     return (
         <div className="space-y-4">
-            <div className="space-y-2">
-                <Label className="text-base font-medium">Select Language</Label>
-                <Select
-                    value={language}
-                    onValueChange={(value) =>
-                        handleLanguageSelect(value as ZapRawBodyTypeLanguage)
-                    }
-                >
-                    <SelectTrigger className="w-48 h-10 hover:cursor-pointer">
-                        <SelectValue placeholder="Select Language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {LANGUAGES.map((lang) => (
-                            <SelectItem
-                                key={lang.language}
-                                value={lang.language}
-                                className="hover:cursor-pointer"
-                            >
-                                {lang.title}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
             <JsonEditor
-                key={`${path}-${language}`}
-                language={language}
-                value={bodyContent || ""}
+                key={path}
+                language="json"
+                value={bodyContent}
                 onChange={handleValueChange}
             />
         </div>
