@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import CreateFolder from "../fs/folder";
 import CreateRequest from "../fs/file";
 // import ImportRequest from "../fs/import";
-import { useCwdStore } from "@/store/new/cwd-store";
+import { useCwdStore } from "@/store/cwd-store";
 
 export default function SideHeaders({ workspace }: { workspace: string }) {
     const setWorkspace = useCwdStore().setWorkspace;

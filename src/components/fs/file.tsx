@@ -15,7 +15,7 @@ import { File } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createZapRequest } from "@/file-system/fs-operation";
 import { FileSystemOperations } from "@/lib/fs/fs";
-import { useCwdStore } from "@/store/new/cwd-store";
+import { useCwdStore } from "@/store/cwd-store";
 
 export default function CreateRequest() {
     const workspace = useCwdStore().workspace;

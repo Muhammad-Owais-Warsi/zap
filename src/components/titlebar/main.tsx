@@ -1,17 +1,11 @@
-// import { useVariableStore } from "@/store/variable-store";
 import { Button } from "../ui/button";
 import { useState, useEffect, useRef } from "react";
-import { Maximize, Minus, Square, X } from "lucide-react";
+import { Maximize, Minus, X } from "lucide-react";
 import { close, maximize, minimize, enableDragging } from "./config";
-// import { useCwdStore } from "@/store/cwd-store";
-// import EnvironmentSwitcher from "../environment/switcher";
-import { useCwdStore } from "@/store/new/cwd-store";
+import EnvironmentSwitcher from "../environment/switcher";
 import { WorkspaceSwitcher } from "../workspace/switcher";
 
 export default function ZapTitleBar() {
-    // const currentEnv = useVariableStore((state) => state.current);
-    // const name = useCwdStore((state) => state.name);
-    const workspace = useCwdStore().workspace;
     const [currentTime, setCurrentTime] = useState(new Date());
     const dragAreaRef = useRef(null);
 
@@ -40,7 +34,7 @@ export default function ZapTitleBar() {
     return (
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center w-full h-10 bg-background border-b select-none">
             <div className="flex items-center pl-4">
-                {/*<EnvironmentSwitcher />*/}
+                <EnvironmentSwitcher />
                 <WorkspaceSwitcher />
             </div>
 
@@ -80,7 +74,6 @@ export default function ZapTitleBar() {
                     variant="destructive"
                     size="icon-tab"
                     className="hover:cursor-pointer"
-                    // color="destructive"
                     onClick={(e) => {
                         e.stopPropagation();
                         close();

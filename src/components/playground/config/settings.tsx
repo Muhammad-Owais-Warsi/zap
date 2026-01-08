@@ -9,7 +9,7 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import type { ZapRequest, ZapNetworkConfig } from "@/types/request";
 import { useDebounce } from "@/hooks/use-debounce";
 

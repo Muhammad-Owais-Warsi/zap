@@ -8,7 +8,7 @@ import {
     SelectContent,
     SelectItem,
 } from "@/components/ui/select";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import { Unlock } from "lucide-react";
 import {
     ZapAuth,

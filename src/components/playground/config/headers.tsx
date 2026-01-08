@@ -8,7 +8,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import type { ZapRequest, ZapHeaders } from "@/types/request";
 import { useDebounce } from "@/hooks/use-debounce";
 

@@ -1,5 +1,5 @@
 import JsonEditor from "@/components/editor/editor";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import { useEffect, useState, useRef } from "react";
 import { ZapRequest } from "@/types/request";
 

@@ -11,8 +11,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { useCwdStore } from "@/store/new/cwd-store";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useCwdStore } from "@/store/cwd-store";
+import { useTabsStore } from "@/store/tabs-store";
 
 export function WorkspaceSwitcher() {
     const [open, setOpen] = useState(false);

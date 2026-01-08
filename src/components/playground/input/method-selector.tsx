@@ -7,7 +7,7 @@ import {
     SelectGroup,
 } from "@/components/ui/select";
 import { FileSystemOperations } from "@/lib/fs/fs";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import { ZapHttpMethods } from "@/types/request";
 
 const HTTP_METHODS = [

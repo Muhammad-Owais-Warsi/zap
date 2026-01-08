@@ -5,8 +5,8 @@ import { Separator } from "../ui/separator";
 import MarkdownEditor from "../ui/markdown";
 import { cleanString } from "@/lib/clean-string";
 import { writeZapFile } from "@/file-system/fs-operation";
-import { useFileSystemStore } from "@/store/new/file-system";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useFileSystemStore } from "@/store/file-system";
+import { useTabsStore } from "@/store/tabs-store";
 
 export default function Render() {
     const activeFile = useFileSystemStore().activeFile;

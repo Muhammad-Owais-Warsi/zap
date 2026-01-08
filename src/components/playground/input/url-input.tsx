@@ -6,10 +6,10 @@ import {
     ContextMenuContent,
     ContextMenuItem,
 } from "@/components/ui/context-menu";
-// import EnvironmentModal from "@/components/environment/main";
+import EnvironmentModal from "@/components/environment/main";
 import { Copy, Pen } from "lucide-react";
 import { useTheme } from "@/components/theme/theme-provider";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import type { ZapRequest } from "@/types/request";
 
 export default function PlaygroundUrlInput() {
@@ -163,13 +163,12 @@ export default function PlaygroundUrlInput() {
                 </ContextMenuContent>
             </ContextMenu>
 
-            {/*<EnvironmentModal
+            <EnvironmentModal
                 open={isEnvironmentModalOpen}
                 onOpenChange={setIsEnvironmentModalOpen}
                 defaultValue={selectedText}
                 onSave={handleVariableSave}
-                rootDir={activeTab?.path || ""}
-            />*/}
+            />
         </div>
     );
 }

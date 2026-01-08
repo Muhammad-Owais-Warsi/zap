@@ -36,9 +36,9 @@ import {
     renameZapRequest,
 } from "@/file-system/fs-operation";
 import { ZapHttpMethods } from "@/types/request";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import { FileSystemOperations } from "@/lib/fs/fs";
-import { useFileSystemStore } from "@/store/new/file-system";
+import { useFileSystemStore } from "@/store/file-system";
 
 type DragItem = { path: string; isDir: boolean; name: string };
 

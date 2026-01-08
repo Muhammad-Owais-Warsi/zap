@@ -10,7 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import type { ZapRequest, ZapFormDataBodyType } from "@/types/request";
 
 export interface FormDataRow {

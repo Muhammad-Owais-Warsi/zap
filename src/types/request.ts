@@ -105,7 +105,6 @@ export type ZapHeaders = {
 export type ZapVariables = {
     key: string;
     value: string;
-    rootId?: string;
     scope: "workspace" | "folder";
 };
 

@@ -2,7 +2,7 @@ import "./App.css";
 import MainLayout from "./layouts/main";
 import WorkspaceSelector from "./components/workspace/selector";
 import ZapTitleBar from "./components/titlebar/main";
-import { useCwdStore } from "./store/new/cwd-store";
+import { useCwdStore } from "./store/cwd-store";
 
 function App() {
     const workspace = useCwdStore().workspace;

@@ -9,7 +9,7 @@ import {
     createZapWorkspace,
     getZapFileContent,
 } from "@/file-system/fs-operation";
-import { useCwdStore } from "@/store/new/cwd-store";
+import { useCwdStore } from "@/store/cwd-store";
 
 export default function WorkspaceSelector() {
     const setWorkspace = useCwdStore().setWorkspace;

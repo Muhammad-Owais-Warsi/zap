@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import { Save } from "lucide-react";
 
 export default function PlaygroundSaveButton() {

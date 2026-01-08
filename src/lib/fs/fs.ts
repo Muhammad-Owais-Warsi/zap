@@ -1,6 +1,6 @@
 import { getZapFileContent } from "@/file-system/fs-operation";
-import { useFileSystemStore } from "@/store/new/file-system";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useFileSystemStore } from "@/store/file-system";
+import { useTabsStore } from "@/store/tabs-store";
 import { ZapHttpMethods } from "@/types/request";
 
 export const FileSystemOperations = {

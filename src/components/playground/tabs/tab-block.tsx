@@ -3,7 +3,7 @@ import ignoreExt from "@/lib/ignore-extension";
 import { X } from "lucide-react";
 import MethodBadge from "@/components/theme/method-badge";
 import { ZapHttpMethods } from "@/types/request";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import { FileSystemOperations } from "@/lib/fs/fs";
 export default function TabBlock({
     name,

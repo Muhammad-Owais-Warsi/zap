@@ -5,13 +5,9 @@ export function create_workspcae_config_content(name: string, path: string) {
     const CREATE_WORKSPACE_CONFIG_CONTENT: ZapWorkspaceConfig = {
         name: name,
         path: path,
-        // children: [],
-        // variables: [],
         environments: { default: [] },
-        // variables: [],
         cookieJar: [],
     };
-    // environments: {"default": ZapVariables[], "user_defined": ZapVariables[]}
     return CREATE_WORKSPACE_CONFIG_CONTENT;
 }
 

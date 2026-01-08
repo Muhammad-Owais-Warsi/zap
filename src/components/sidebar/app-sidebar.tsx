@@ -13,7 +13,7 @@ import { useEffect } from "react";
 
 import { ModeToggle } from "../theme/theme-toggle";
 import SidebarSettings from "./sidebar-settings";
-import { useFileSystemStore } from "@/store/new/file-system";
+import { useFileSystemStore } from "@/store/file-system";
 import { useRef } from "react";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {

@@ -7,7 +7,7 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import { ZapBodyType, ZapRequest } from "@/types/request";
 import PlaygroundBodyFormData from "./form-data";
 import PlaygroundBodyXwwwFormUrlencoded from "./x-www-form-urlencoded";

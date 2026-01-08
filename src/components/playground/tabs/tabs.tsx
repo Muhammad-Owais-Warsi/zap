@@ -3,10 +3,10 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import TabBlock from "./tab-block";
 import { createZapRequest } from "@/file-system/fs-operation";
 import { Plus } from "lucide-react";
-import { useTabsStore } from "@/store/new/tabs-store";
+import { useTabsStore } from "@/store/tabs-store";
 import { FileSystemOperations } from "@/lib/fs/fs";
-import { useFileSystemStore } from "@/store/new/file-system";
-import { useCwdStore } from "@/store/new/cwd-store";
+import { useFileSystemStore } from "@/store/file-system";
+import { useCwdStore } from "@/store/cwd-store";
 
 export default function PlaygroundTabs() {
     const workspace = useCwdStore().workspace;
