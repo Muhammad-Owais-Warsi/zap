@@ -1,35 +1,25 @@
-import {
-    createZapFolder,
-    createZapWorkspace,
-    createZapRequest,
-} from "@/file-system/fs-operation";
+import { createZapWorkspace } from "@/file-system/fs-operation";
 import { Button } from "../ui/button";
-import { useCwdStore } from "@/store/cwd-store";
-
-import { useTabsStore } from "@/store/tabs-store";
-import { WorkspaceSwitcher } from "../workspace/switcher";
+// import { WorkspaceSwitcher } from "../workspace/switcher";
 import { Plus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import CreateFolder from "../fs/folder";
 import CreateRequest from "../fs/file";
-import ImportRequest from "../fs/import";
+// import ImportRequest from "../fs/import";
+import { useCwdStore } from "@/store/cwd-store";
 
 export default function SideHeaders({ workspace }: { workspace: string }) {
-    const updateName = useCwdStore((state) => state.updateName);
-    const resetCwdStore = useCwdStore((state) => state.resetCwdStore);
-    const resetTabsStore = useTabsStore((state) => state.resetTabStore);
+    const setWorkspace = useCwdStore().setWorkspace;
 
     const handleCreateWorkspace = async () => {
         console.log(await createZapWorkspace("ZAP"));
-        resetCwdStore();
-        resetTabsStore();
-        updateName("ZAP");
+        setWorkspace("ZAP");
     };
 
     return (
         <div className="">
             <div className="flex items-center justify-start gap-2">
-                <WorkspaceSwitcher />
+                {/*<WorkspaceSwitcher />*/}
                 <Tooltip>
                     <TooltipTrigger>
                         <Button
@@ -44,7 +34,7 @@ export default function SideHeaders({ workspace }: { workspace: string }) {
                     <TooltipContent>New Workspace</TooltipContent>
                 </Tooltip>
 
-                <ImportRequest workspace={workspace} />
+                {/*<ImportRequest workspace={workspace} />*/}
                 <CreateFolder />
                 <CreateRequest />
             </div>

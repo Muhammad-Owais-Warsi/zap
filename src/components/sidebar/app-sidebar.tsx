@@ -6,41 +6,35 @@ import {
     SidebarFooter,
     SidebarHeader,
 } from "@/components/ui/sidebar";
-import { entriesType, useWorkspaceRecursive } from "@/hooks/useWorkspace";
+import { useWorkspaceRecursive } from "@/hooks/useWorkspace";
 import SideHeaders from "./sidebar-header";
-import { useZapRequest } from "@/store/request-store";
+
 import { useEffect } from "react";
-import { IGNORED_FILES } from "@/lib/ignored-files";
+
 import { ModeToggle } from "../theme/theme-toggle";
 import SidebarSettings from "./sidebar-settings";
+import { useFileSystemStore } from "@/store/file-system";
+import { useRef } from "react";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     workspace: string;
 }
 
 export function AppSidebar({ workspace, ...props }: AppSidebarProps) {
-    const { entries, loading } = useWorkspaceRecursive(workspace);
-    const setPathAndName = useZapRequest((state) => state.setPathAndName);
     console.log("AppSidebar re-rendered");
+    const { entries, loading } = useWorkspaceRecursive(workspace);
     console.log(entries);
+    const setAllEntries = useFileSystemStore().setAllFiles;
+    const files = useFileSystemStore((state) => state.files);
+    console.log("HERE", files);
+
+    const initialized = useRef(false);
 
     useEffect(() => {
-        function initRequests(items: entriesType[]) {
-            items
-                ?.filter((file) => !IGNORED_FILES.includes(file.name))
-                .forEach((file) => {
-                    if (!file.isDir) {
-                        setPathAndName(file.path, file.name);
-                    }
-
-                    if (file.isDir && file.items) {
-                        initRequests(file.items);
-                    }
-                });
+        if (entries && entries.length > 0) {
+            setAllEntries(entries);
         }
-
-        initRequests(entries);
-    }, [entries, setPathAndName]);
+    }, [entries, setAllEntries]);
 
     if (loading)
         return (
@@ -55,7 +49,7 @@ export function AppSidebar({ workspace, ...props }: AppSidebarProps) {
                 <SideHeaders workspace={workspace} />
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={entries} workspace={workspace} />
+                <NavMain items={files} workspace={workspace} />
             </SidebarContent>
             <SidebarFooter className="border-t border-border p-3 flex flex-row justify-between items-center">
                 <ModeToggle />

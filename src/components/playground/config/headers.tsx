@@ -1,37 +1,16 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useCwdStore } from "@/store/cwd-store";
-import { useZapRequest } from "@/store/request-store";
-import { Plus } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Plus, Info, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import {
-    flexRender,
-    getCoreRowModel,
-    useReactTable,
-    ColumnDef,
-} from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupButton,
-    InputGroupInput,
-} from "@/components/ui/input-group";
-import { Info } from "lucide-react";
+import { useTabsStore } from "@/store/tabs-store";
+import type { ZapRequest, ZapHeaders } from "@/types/request";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export interface HeadersRow {
     id: string;
@@ -42,66 +21,106 @@ export interface HeadersRow {
     enabled: boolean;
 }
 
-export default function PlaygroundConfigHeadersTable() {
-    const selectedFile = useCwdStore((state) => state.selectedFile);
-    const getRequest = useZapRequest((state) => state.getRequest);
-    const setHeaders = useZapRequest((state) => state.setHeaders);
+export default function PlaygroundConfigHeadersList() {
+    const activeTab = useTabsStore().activeTab;
+    const updateTabContent = useTabsStore().updateTabContent;
 
     const [data, setData] = useState<HeadersRow[]>([]);
 
+    const prevTabPath = useRef<string | undefined>(undefined);
+    const prevTabContent = useRef<ZapRequest | undefined>(undefined);
+    const prevData = useRef<HeadersRow[]>([]);
+
     useEffect(() => {
-        if (!selectedFile) return;
-        const req = getRequest(selectedFile.path);
-
-        if (!req?.headers) {
+        if (activeTab?.content && typeof activeTab.content === "string") {
+            try {
+                const fileConfig = JSON.parse(activeTab.content);
+                const req = fileConfig.content as ZapRequest;
+                if (!req?.headers || !Array.isArray(req.headers)) {
+                    setData([]);
+                    prevTabContent.current = req;
+                    prevData.current = [];
+                } else {
+                    const loaded = req.headers.map((h, idx) => ({
+                        id: idx.toString(),
+                        key: h.key,
+                        value: h.value,
+                        default: h.default ?? false,
+                        description: h.description ?? "",
+                        enabled: h.enabled ?? true,
+                    }));
+                    setData(loaded);
+                    prevTabContent.current = req;
+                    prevData.current = loaded;
+                }
+                prevTabPath.current = activeTab.path;
+            } catch {
+                setData([]);
+                prevTabContent.current = undefined;
+                prevData.current = [];
+                prevTabPath.current = activeTab?.path;
+            }
+        } else {
             setData([]);
-            return;
+            prevTabContent.current = undefined;
+            prevData.current = [];
+            prevTabPath.current = activeTab?.path;
         }
+    }, [activeTab]);
 
-        const loaded = req.headers.map((h, idx) => ({
-            id: idx.toString(),
-            key: h.key,
-            value: h.value,
-            default: h.default,
-            description: h.description ?? "",
-            enabled: h.enabled ?? true,
-        }));
-
-        setData(loaded);
-    }, [selectedFile, getRequest]);
-
-    const updateStore = useCallback(
-        (rows: HeadersRow[]) => {
-            const activeParams = rows
-                .filter((d) => d.key || d.value || d.description)
-                .map((d) => ({
-                    key: d.key,
-                    value: d.value,
-                    description: d.description,
-                    default: d.default,
-                    enabled: d.enabled,
-                }));
-
-            if (selectedFile?.path) {
-                console.log("HERE");
-                setHeaders(activeParams, selectedFile.path);
-                console.log("DONE");
+    const persistHeaders = useCallback(
+        (updatedData: HeadersRow[]) => {
+            if (
+                !prevTabPath.current ||
+                !prevTabContent.current ||
+                !activeTab?.content ||
+                typeof activeTab.content !== "string"
+            )
+                return;
+            const activeHeaders: ZapHeaders[] = updatedData.map((d) => ({
+                key: d.key,
+                value: d.value,
+                description: d.description,
+                default: d.default,
+                enabled: d.enabled,
+            }));
+            const updatedReq: ZapRequest = {
+                ...prevTabContent.current,
+                headers: activeHeaders,
+            };
+            try {
+                const prevFileConfig = JSON.parse(activeTab.content);
+                const updatedFileConfig = {
+                    ...prevFileConfig,
+                    content: updatedReq,
+                };
+                updateTabContent(
+                    prevTabPath.current,
+                    JSON.stringify(updatedFileConfig),
+                );
+                prevTabContent.current = updatedReq;
+            } catch {
+                // ignore
             }
         },
-        [selectedFile, setHeaders],
+        [updateTabContent],
     );
 
+    // Debounced version for text inputs
+    const debouncedPersistHeaders = useDebounce(persistHeaders, 500);
+
     const handleInputChange = useCallback(
-        (id: string, field: "key" | "value" | "description", value: string) => {
+        (id: string, field: "key" | "value", value: string) => {
             setData((prev) => {
                 const updated = prev.map((row) =>
                     row.id === id ? { ...row, [field]: value } : row,
                 );
-                updateStore(updated);
+                prevData.current = updated;
+                debouncedPersistHeaders(updated);
                 return updated;
             });
         },
-        [updateStore],
+        [debouncedPersistHeaders],
     );
 
     const handleCheckboxChange = useCallback(
@@ -110,11 +129,24 @@ export default function PlaygroundConfigHeadersTable() {
                 const updated = prev.map((row) =>
                     row.id === id ? { ...row, enabled: checked } : row,
                 );
-                updateStore(updated);
+                prevData.current = updated;
+                persistHeaders(updated);
                 return updated;
             });
         },
-        [updateStore],
+        [persistHeaders],
+    );
+
+    const handleDeleteRow = useCallback(
+        (id: string) => {
+            setData((prev) => {
+                const updated = prev.filter((row) => row.id !== id);
+                prevData.current = updated;
+                persistHeaders(updated);
+                return updated;
+            });
+        },
+        [persistHeaders],
     );
 
     const addRow = useCallback(() => {
@@ -127,191 +159,124 @@ export default function PlaygroundConfigHeadersTable() {
             enabled: true,
         };
         setData((prev) => {
-            const updated = [...prev, newRow];
-            updateStore(updated);
+            const updated = [newRow, ...prev];
+            prevData.current = updated;
+            persistHeaders(updated);
             return updated;
         });
-    }, [updateStore]);
+    }, [persistHeaders]);
 
-    const columns = useMemo<ColumnDef<HeadersRow>[]>(
-        () => [
-            {
-                id: "select",
-                header: ({ table }) => (
-                    <Checkbox
-                        checked={table.getIsAllRowsSelected()}
-                        onCheckedChange={(value) =>
-                            table.toggleAllRowsSelected(!!value)
-                        }
-                        aria-label="Select all rows"
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={row.original.enabled}
-                        onCheckedChange={(value) =>
-                            handleCheckboxChange(row.original.id, !!value)
-                        }
-                    />
-                ),
-            },
-            {
-                accessorKey: "key",
-                header: "Key",
-                cell: ({ row }) => {
-                    return (
-                        <Input
-                            type="text"
-                            value={row.original.key}
-                            disabled={row.original.default}
-                            placeholder="Header key"
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "key",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    );
-                },
-            },
-            {
-                accessorKey: "value",
-                header: "Value",
-                cell: ({ row }) => {
-                    return (
-                        <Input
-                            type="text"
-                            value={row.original.value}
-                            disabled={!row.original.enabled}
-                            placeholder="Header value"
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "value",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    );
-                },
-            },
-            {
-                accessorKey: "description",
-                header: "Description",
-                cell: ({ row }) => {
-                    return (
-                        <InputGroup>
-                            <InputGroupInput
-                                value={row.original.description}
-                                disabled={row.original.default}
-                                placeholder="Description"
-                                className="!pl-1"
+    const allEnabled = data.length > 0 && data.every((row) => row.enabled);
+    const someEnabled = data.some((row) => row.enabled);
+
+    const handleSelectAll = useCallback(
+        (checked: boolean) => {
+            setData((prev) => {
+                const updated = prev.map((row) => ({
+                    ...row,
+                    enabled: checked,
+                }));
+                prevData.current = updated;
+                persistHeaders(updated);
+                return updated;
+            });
+        },
+        [persistHeaders],
+    );
+
+    return (
+        <div className="flex flex-col gap-4 ">
+            <div className="flex items-center gap-2 mb-2 justify-end">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={addRow}
+                    className="flex items-center"
+                >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add header
+                </Button>
+                <Checkbox
+                    checked={allEnabled}
+                    indeterminate={!allEnabled && someEnabled}
+                    onCheckedChange={(value) => handleSelectAll(!!value)}
+                    className="ml-2"
+                />
+                <span className="text-sm">Select All</span>
+            </div>
+            <div className="flex flex-col gap-2">
+                {data.length === 0 && (
+                    <div className="text-center text-muted-foreground py-4">
+                        No headers added
+                    </div>
+                )}
+                {data.map((row) => (
+                    <div>
+                        <div
+                            key={row.id}
+                            className="flex flex-col md:flex-row gap-2 items-center  p-3 bg-background"
+                        >
+                            <Checkbox
+                                checked={row.enabled}
+                                onCheckedChange={(value) =>
+                                    handleCheckboxChange(row.id, !!value)
+                                }
+                                className="mr-2"
+                            />
+                            <Input
+                                type="text"
+                                value={row.key}
+                                disabled={row.default}
+                                placeholder="Header key"
+                                className="flex-1 min-w-0"
                                 onChange={(e) =>
                                     handleInputChange(
-                                        row.original.id,
-                                        "description",
+                                        row.id,
+                                        "key",
                                         e.target.value,
                                     )
                                 }
                             />
-                            <InputGroupAddon align="inline-end">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <InputGroupButton
-                                            className="rounded-full"
-                                            size="icon-xs"
-                                        >
-                                            <Info />
-                                        </InputGroupButton>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        {row.original.description}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </InputGroupAddon>
-                        </InputGroup>
-                    );
-                },
-            },
-            {
-                id: "add",
-                header: () => (
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={addRow}
-                        className="ml-auto"
-                    >
-                        <Plus className="h-4 w-4" />
-                    </Button>
-                ),
-                cell: () => null,
-            },
-        ],
-        [handleInputChange, handleCheckboxChange, addRow],
-    );
-
-    const table = useReactTable({
-        data,
-        columns,
-        getRowId: (row) => row.id,
-        getCoreRowModel: getCoreRowModel(),
-    });
-
-    return (
-        <Tabs defaultValue="table">
-            <TabsContent value="table" className="flex flex-col gap-4">
-                <div className="max-h-160 overflow-auto rounded-lg border">
-                    <Table>
-                        <TableHeader className="sticky top-0 bg-background z-10">
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id}>
-                                            {flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext(),
-                                            )}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.length === 0 ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="text-center"
+                            <Input
+                                type="text"
+                                value={row.value}
+                                disabled={!row.enabled}
+                                placeholder="Header value"
+                                className="flex-1 min-w-0"
+                                onChange={(e) =>
+                                    handleInputChange(
+                                        row.id,
+                                        "value",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className=""
                                     >
-                                        No headers added
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow
-                                        key={row.id}
-                                        data-state={
-                                            row.original.enabled && "selected"
-                                        }
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext(),
-                                                )}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </TabsContent>
-        </Tabs>
+                                        <Info />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {row.description || "No description"}
+                                </TooltipContent>
+                            </Tooltip>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                className=" ml-2  "
+                                onClick={() => handleDeleteRow(row.id)}
+                            >
+                                <Trash2 className="w-4 h-4 text-red-600 hover:text-white" />
+                            </Button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

@@ -3,7 +3,7 @@
 mod fs;
 mod request;
 
-use fs::move_file;
+use fs::read_workspace_recursive;
 use request::make_request;
 
 #[tauri::command]
@@ -16,7 +16,11 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, move_file, make_request])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            read_workspace_recursive,
+            make_request
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

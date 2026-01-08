@@ -5,13 +5,9 @@ export function create_workspcae_config_content(name: string, path: string) {
     const CREATE_WORKSPACE_CONFIG_CONTENT: ZapWorkspaceConfig = {
         name: name,
         path: path,
-        // children: [],
-        // variables: [],
         environments: { default: [] },
-        // variables: [],
         cookieJar: [],
     };
-    // environments: {"default": ZapVariables[], "user_defined": ZapVariables[]}
     return CREATE_WORKSPACE_CONFIG_CONTENT;
 }
 
@@ -35,7 +31,7 @@ export function create_workspcae_config_content(name: string, path: string) {
 export function create_folder_config_content(name: string, path: string) {
     const CREATE_FOLDER_CONFIG_CONTENT: ZapFolderConfig = {
         name: name,
-        path: path,
+        // path: path,
         type: "folder",
         // variables: [],
     };
@@ -46,7 +42,7 @@ export function create_folder_config_content(name: string, path: string) {
 export function create_file_config_content(name: string, path: string) {
     const CREATE_FILE_CONTENT: ZapFileConfig = {
         name: name,
-        path: path,
+        // path: path,
         type: "file",
         content: {
             url: "",
@@ -56,14 +52,9 @@ export function create_file_config_content(name: string, path: string) {
                 none: null,
                 "form-data": [],
                 "x-www-form-urlencoded": [],
-                raw: {
-                    text: "",
-                    json: "",
-                    javascript: "",
-                    html: "",
-                    xml: "",
-                },
+                raw: "",
             },
+            currentBodyType: "none",
             params: [],
             auth: {
                 type: "no-auth",

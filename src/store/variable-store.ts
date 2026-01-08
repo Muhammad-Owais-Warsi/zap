@@ -1,4 +1,6 @@
+import { createSelectors } from "@/lib/zustand-selector";
 import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 
 interface VariableStore {
     current: string;
@@ -9,14 +11,27 @@ interface VariableStore {
     setScope: (scope: "workspace" | "folder") => void;
 }
 
-export const useVariableStore = create<VariableStore>()((set) => ({
-    current: "default",
-    environment: "default",
-    scope: "workspace",
+export const useVariableStore = createSelectors(
+    create<VariableStore>()(
+        immer((set) => ({
+            current: "default",
+            environment: "default",
+            scope: "workspace",
 
-    setCurrent: (environment) => set({ current: environment }),
+            setCurrent: (environment) =>
+                set((state) => {
+                    state.current = environment;
+                }),
 
-    setEnvironment: (environment) => set({ environment }),
+            setEnvironment: (environment) =>
+                set((state) => {
+                    state.environment = environment;
+                }),
 
-    setScope: (scope) => set({ scope }),
-}));
+            setScope: (scope) =>
+                set((state) => {
+                    state.scope = scope;
+                }),
+        })),
+    ),
+);

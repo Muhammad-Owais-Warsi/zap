@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useCwdStore } from "@/store/cwd-store";
 import { ChevronDown, ChevronRight, Plus, Settings2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,9 +17,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "../ui/select";
+import { useCwdStore } from "@/store/cwd-store";
 
 function NewUi() {
-    const workspaceConfig = useCwdStore((state) => state.workspaceConfig);
+    const workspaceConfig = useCwdStore().workspaceConfig;
     const [selectedEnvironment, setSelectedEnvironment] =
         useState<string>("default");
 
@@ -211,14 +211,6 @@ export default function EnvironmentSettings() {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        {variable.rootId && (
-                                                            <div className="text-xs text-muted-foreground/70 mt-1">
-                                                                📁{" "}
-                                                                {
-                                                                    variable.rootId
-                                                                }
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </div>
                                             ))}

@@ -12,6 +12,7 @@ import {
     renameFolder,
     writeFile,
 } from "./commands";
+import { create_readme_content } from "./fs-data";
 
 export async function createZapRequest(
     name: string,
@@ -56,7 +57,7 @@ export async function createZapFolder(
         await createDirectory(name, path);
         return {
             type: "success",
-            message: "Zap folder created successfully",
+            message: JSON.stringify(create_readme_content(name)),
         };
     } catch (error: any) {
         return {

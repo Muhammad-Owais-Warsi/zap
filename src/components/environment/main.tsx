@@ -12,17 +12,16 @@ import { Button } from "../ui/button";
 import EnvironmentSelector from "./environment-selector";
 import EnvrionmentScopeSelector from "./scope-selector";
 import { useState } from "react";
-import { useVariableStore } from "@/store/variable-store";
-import { useCwdStore } from "@/store/cwd-store";
 import { writeZapFile } from "@/file-system/fs-operation";
 import { ZapWorkspaceConfig } from "@/types/fs";
+import { useCwdStore } from "@/store/cwd-store";
+import { useVariableStore } from "@/store/variable-store";
 
 interface EnvironmentModalProps {
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     defaultValue: string;
     onSave?: (variableName: string) => void;
-    rootDir: string;
 }
 
 export default function EnvironmentModal({
@@ -30,14 +29,14 @@ export default function EnvironmentModal({
     onOpenChange,
     defaultValue,
     onSave,
-    rootDir,
 }: EnvironmentModalProps) {
     const [variableName, setVariableName] = useState("");
-    const setWorkspaceConfig = useCwdStore((state) => state.setWorkspaceConfig);
-    const workspaceConfig = useCwdStore((state) => state.workspaceConfig);
-    const name = useCwdStore((state) => state.name);
 
-    const { environment, scope } = useVariableStore();
+    const workspace = useCwdStore().workspace;
+    const setWorkspaceConfig = useCwdStore().setWorkspaceConfig;
+    const workspaceConfig = useCwdStore().workspaceConfig;
+    const environment = useVariableStore().environment;
+    const scope = useVariableStore().scope;
 
     const handleSave = async () => {
         if (variableName.trim() && onSave) {
@@ -61,15 +60,16 @@ export default function EnvironmentModal({
                         {
                             key: variableName.trim(),
                             value: defaultValue,
-                            rootId: rootDir.match(/\[(.*?)\]/)?.[1] || null,
                             scope,
                         },
                     ],
                 },
             };
 
+            console.log(updated_workspace_config);
+
             const result = await writeZapFile(
-                `${name}/workspace_config.json`,
+                `${workspace}/workspace_config.json`,
                 JSON.stringify(updated_workspace_config),
             );
 
@@ -134,7 +134,9 @@ export default function EnvironmentModal({
                             Environment
                         </Label>
                         <div className="w-2/3">
-                            <EnvironmentSelector />
+                            <EnvironmentSelector
+                                workspaceConfig={workspaceConfig}
+                            />
                         </div>
                     </div>
 

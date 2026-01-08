@@ -6,8 +6,9 @@ import {
     SelectValue,
     SelectGroup,
 } from "@/components/ui/select";
-import { useCwdStore } from "@/store/cwd-store";
-import { useZapRequest } from "@/store/request-store";
+import { FileSystemOperations } from "@/lib/fs/fs";
+import { useTabsStore } from "@/store/tabs-store";
+import { ZapHttpMethods } from "@/types/request";
 
 const HTTP_METHODS = [
     "GET",
@@ -20,24 +21,22 @@ const HTTP_METHODS = [
 ];
 
 export default function PlaygroundMethodSelector() {
-    const selectedFile = useCwdStore((state) => state.selectedFile);
-    const setMethod = useZapRequest((state) => state.setMethod);
-
-    const currentRequest = useZapRequest((state) => {
-        if (!selectedFile?.path) return undefined;
-        return state.getRequest(selectedFile.path);
-    });
+    const activeTab = useTabsStore().activeTab;
 
     function handleMethodChange(value: string) {
-        setMethod(value, selectedFile?.path!);
+        if (!activeTab) return;
+        FileSystemOperations.updateFileAndTabMethod(
+            activeTab.path,
+            value as ZapHttpMethods,
+        );
     }
 
     return (
         <div className="flex-none">
             <Select
-                onValueChange={(value) => handleMethodChange(value)}
-                value={currentRequest?.method || "GET"}
-                disabled={!currentRequest}
+                onValueChange={handleMethodChange}
+                value={activeTab?.method}
+                disabled={!activeTab}
             >
                 <SelectTrigger className="w-[120px] hover:cursor-pointer">
                     <SelectValue />
@@ -46,6 +45,7 @@ export default function PlaygroundMethodSelector() {
                     <SelectGroup>
                         {HTTP_METHODS.map((v) => (
                             <SelectItem
+                                key={v}
                                 value={v}
                                 className="hover:cursor-pointer"
                             >

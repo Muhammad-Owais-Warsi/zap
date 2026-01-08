@@ -1,6 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { useZapRequest } from "@/store/request-store";
-import { useCwdStore } from "@/store/cwd-store";
 import { useEffect, useRef, useState } from "react";
 import {
     ContextMenu,
@@ -11,14 +9,13 @@ import {
 import EnvironmentModal from "@/components/environment/main";
 import { Copy, Pen } from "lucide-react";
 import { useTheme } from "@/components/theme/theme-provider";
+import { useTabsStore } from "@/store/tabs-store";
+import type { ZapRequest } from "@/types/request";
 
 export default function PlaygroundUrlInput() {
-    const selectedFile = useCwdStore((state) => state.selectedFile);
-    const currentRequest = useZapRequest((state) => {
-        if (!selectedFile?.path) return undefined;
-        return state.getRequest(selectedFile.path);
-    });
-    const setUrl = useZapRequest((state) => state.setUrl);
+    const activeTab = useTabsStore().activeTab;
+    const updateTabContent = useTabsStore().updateTabContent;
+    const updateIsDirty = useTabsStore().updateIsDirty;
 
     const { theme } = useTheme();
 
@@ -29,20 +26,46 @@ export default function PlaygroundUrlInput() {
     const [selectionEnd, setSelectionEnd] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const prevTabPath = useRef<string | undefined>(undefined);
+    const prevTabContent = useRef<ZapRequest | undefined>(undefined);
+
     useEffect(() => {
-        if (selectedFile?.path) {
-            // console.log("URL", request);
-            setLocalUrl(currentRequest?.url || "");
+        if (
+            prevTabPath.current &&
+            prevTabContent.current &&
+            localUrl !== prevTabContent.current.url
+        ) {
+            const updatedRequest: ZapRequest = {
+                ...prevTabContent.current,
+                url: localUrl,
+            };
+            updateTabContent(
+                prevTabPath.current,
+                JSON.stringify(updatedRequest),
+            );
+        }
+
+        if (activeTab?.content && typeof activeTab.content === "string") {
+            try {
+                const tabContent = JSON.parse(activeTab.content) as ZapRequest;
+                setLocalUrl(tabContent.url || "");
+                prevTabContent.current = tabContent;
+                prevTabPath.current = activeTab.path;
+            } catch {
+                setLocalUrl("");
+                prevTabContent.current = undefined;
+                prevTabPath.current = activeTab?.path;
+            }
         } else {
             setLocalUrl("");
+            prevTabContent.current = undefined;
+            prevTabPath.current = activeTab?.path;
         }
-    }, [selectedFile, currentRequest]);
+    }, [activeTab, updateTabContent]);
 
     function handleUrlChange(value: string) {
         setLocalUrl(value);
-        if (selectedFile?.path) {
-            setUrl(value, selectedFile.path);
-        }
+        if (activeTab) updateIsDirty(activeTab?.path, true);
     }
 
     function handleContextMenu() {
@@ -145,7 +168,6 @@ export default function PlaygroundUrlInput() {
                 onOpenChange={setIsEnvironmentModalOpen}
                 defaultValue={selectedText}
                 onSave={handleVariableSave}
-                rootDir={selectedFile?.path!}
             />
         </div>
     );

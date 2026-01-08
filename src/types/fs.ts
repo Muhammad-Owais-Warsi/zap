@@ -1,4 +1,9 @@
-import { ZapCookie, ZapEnvironment, ZapRequest, ZapVariables } from "./request";
+import {
+    ZapCookie,
+    ZapEnvironment,
+    ZapHttpMethods,
+    ZapRequest,
+} from "./request";
 
 // PROBLEM TO SOLVE
 // should we really need to keep variables[] in folderconfig ??
@@ -57,14 +62,14 @@ export type ZapWorkspaceConfig = {
 export type ZapFileConfig = {
     name: string;
     type: "file";
-    path: string;
+    // path: string;
     content: ZapRequest;
 };
 
 export type ZapFolderConfig = {
     name: string;
     type: "folder";
-    path: string;
+    // path: string;
     // variables: ZapVariables[];
     // children: ZapFileNode[];
 };
@@ -72,7 +77,8 @@ export type ZapFolderConfig = {
 export interface WorkspaceEntry {
     name: string;
     path: string; // built manually
-    isDirectory: boolean;
+    is_dir: boolean;
+    method?: ZapHttpMethods;
     children?: WorkspaceEntry[];
 }
 

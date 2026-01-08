@@ -1,65 +1,43 @@
+import { createSelectors } from "@/lib/zustand-selector";
 import { ZapWorkspaceConfig } from "@/types/fs";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface CwdStore {
     workspaces: string[];
-    name: string | null;
-    workspaceConfig: ZapWorkspaceConfig | null;
-    selectedFile: {
-        path: string;
-        content: string;
-    } | null;
-    setWorkspaces: (workspace: string[]) => void;
-    workspaceUpdateTrigger: number;
-    setSelectedFile: (path: string | null, content: string | null) => void;
-    setWorkspaceConfig: (content: ZapWorkspaceConfig) => void;
-    updateName: (name: string) => void;
-    resetCwdStore: () => void;
-    triggerWorkspaceUpdate: () => void;
+    workspace?: string;
+    workspaceConfig?: ZapWorkspaceConfig;
+    setWorkspace: (workspace: string) => void;
+    setWorkspaces: (workspaces: string[]) => void;
+    setWorkspaceConfig: (config: ZapWorkspaceConfig) => void;
 }
 
-export const useCwdStore = create<CwdStore>()(
-    persist(
-        (set) => ({
-            workspaces: [],
-            name: null,
-            workspaceConfig: null,
-            selectedFile: null,
-            workspaceUpdateTrigger: 0,
+export const useCwdStore = createSelectors(
+    create<CwdStore>()(
+        persist(
+            (set) => ({
+                workspaces: [],
+                workspace: undefined,
+                workspaceConfig: undefined,
 
-            setWorkspaces: (workspace) => set({ workspaces: workspace }),
+                setWorkspace: (workspace) =>
+                    set(() => ({
+                        workspace,
+                    })),
 
-            updateName: (name) => set({ name }),
+                setWorkspaceConfig: (workspaceConfig) =>
+                    set(() => ({
+                        workspaceConfig,
+                    })),
 
-            setWorkspaceConfig: (content) => set({ workspaceConfig: content }),
-
-            setSelectedFile: (path, content) =>
-                set((state) => {
-                    if (!path && !content) return { selectedFile: null };
-
-                    return {
-                        selectedFile: {
-                            path: path,
-                            content: content,
-                        },
-                    };
-                }),
-
-            resetCwdStore: () =>
-                set({
-                    name: null,
-                    selectedFile: null,
-                    workspaceUpdateTrigger: 0,
-                }),
-
-            triggerWorkspaceUpdate: () =>
-                set((state) => ({
-                    workspaceUpdateTrigger: state.workspaceUpdateTrigger + 1,
-                })),
-        }),
-        {
-            name: "cwd-store",
-        },
+                setWorkspaces: (workspaces) =>
+                    set(() => ({
+                        workspaces,
+                    })),
+            }),
+            {
+                name: "new-cwd-store",
+            },
+        ),
     ),
 );

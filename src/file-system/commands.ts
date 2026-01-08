@@ -15,12 +15,12 @@ import {
     create_workspcae_config_content,
 } from "./fs-data";
 import { WorkspaceEntry } from "@/types/fs";
+import { invoke } from "@tauri-apps/api/core";
 
 const BASE_DIR = BaseDirectory.AppData;
 
 async function getWorkspace() {
     const entries = await readDir("./", { baseDir: BASE_DIR });
-    // console.log("Entries:", entries);
 
     const folders = entries
         .filter((entry) => entry.isDirectory)
@@ -30,27 +30,14 @@ async function getWorkspace() {
     return folders;
 }
 
-async function getWorkspaceRecursively(name: string) {
-    const entries = await readDir(name, { baseDir: BASE_DIR });
-    const result: WorkspaceEntry[] = [];
-
-    for (const entry of entries) {
-        const isDir = entry.isDirectory;
-        const fullPath = name ? `${name}/${entry.name!}` : entry.name!;
-        const workspaceEntry: WorkspaceEntry = {
-            name: entry.name!,
-            path: fullPath,
-            isDirectory: isDir,
-        };
-
-        if (isDir) {
-            workspaceEntry.children = await getWorkspaceRecursively(fullPath);
-        }
-
-        result.push(workspaceEntry);
-    }
+async function getWorkspaceRecursively(
+    name: string,
+): Promise<WorkspaceEntry[]> {
+    const result = await invoke("read_workspace_recursive", {
+        workspace: name,
+    });
     console.log(result);
-    return result;
+    return result as WorkspaceEntry[];
 }
 
 async function getFileContent(path: string) {

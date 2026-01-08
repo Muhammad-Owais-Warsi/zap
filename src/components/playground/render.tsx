@@ -1,4 +1,3 @@
-import { useCwdStore } from "@/store/cwd-store";
 import PlaygroundTabs from "./tabs/tabs";
 import PlaygroundMainInput from "./input/main";
 import PlaygroundMainConfig from "./config/main";
@@ -6,15 +5,16 @@ import { Separator } from "../ui/separator";
 import MarkdownEditor from "../ui/markdown";
 import { cleanString } from "@/lib/clean-string";
 import { writeZapFile } from "@/file-system/fs-operation";
+import { useFileSystemStore } from "@/store/file-system";
+import { useTabsStore } from "@/store/tabs-store";
 
 export default function Render() {
-    const selectedFile = useCwdStore((state) => state.selectedFile);
-
-    const cleaned_markdown = cleanString(selectedFile?.content);
+    const activeFile = useFileSystemStore().activeFile;
+    const activeTab = useTabsStore().activeTab;
 
     const handleSave = async (content: string) => {
         const cleaned_content = cleanString(content);
-        await writeZapFile(selectedFile?.path, cleaned_content);
+        if (activeFile) await writeZapFile(activeFile, cleaned_content);
     };
 
     return (
@@ -24,14 +24,14 @@ export default function Render() {
                     <PlaygroundTabs />
                 </div>
 
-                {selectedFile?.path?.includes("README.md") ? (
+                {activeFile?.includes("README.md") ? (
                     <div className="p-6 overflow-auto flex-1">
                         <MarkdownEditor
-                            initialContent={cleaned_markdown}
+                            initialContent={cleanString(activeTab?.content)}
                             onSave={handleSave}
                         />
                     </div>
-                ) : selectedFile?.path ? (
+                ) : activeFile ? (
                     <div className="flex-1 flex flex-col min-h-0">
                         <div className="flex min-h-0 overflow-hidden">
                             <div className="w-full p-4 flex flex-col min-h-0 min-w-0">

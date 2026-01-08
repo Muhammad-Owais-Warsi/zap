@@ -1,13 +1,13 @@
 import "./App.css";
 import MainLayout from "./layouts/main";
 import WorkspaceSelector from "./components/workspace/selector";
-import { useCwdStore } from "./store/cwd-store";
 import ZapTitleBar from "./components/titlebar/main";
+import { useCwdStore } from "./store/cwd-store";
 
 function App() {
-    const name = useCwdStore((state) => state.name);
+    const workspace = useCwdStore().workspace;
 
-    if (!name) {
+    if (!workspace) {
         return <WorkspaceSelector />;
     }
 
@@ -15,7 +15,7 @@ function App() {
         <div className="h-screen overflow-hidden">
             <ZapTitleBar />
             <div className="sidebar-with-titlebar h-full">
-                <MainLayout workspace={name} />
+                <MainLayout workspace={workspace} />
             </div>
         </div>
     );

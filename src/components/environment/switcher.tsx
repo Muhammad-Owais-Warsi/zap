@@ -10,18 +10,20 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { useVariableStore } from "@/store/variable-store";
+
 import { useCwdStore } from "@/store/cwd-store";
+import { useVariableStore } from "@/store/variable-store";
 
 export default function EnvironmentSwitcher() {
     const [open, setOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
 
-    const currentEnv = useVariableStore((state) => state.current);
-    const setCurrent = useVariableStore((state) => state.setCurrent);
-    const workspaceConfig = useCwdStore((state) => state.workspaceConfig);
+    const currentEnv = useVariableStore().current;
+    const setCurrent = useVariableStore().setCurrent;
+    let workspaceConfig = useCwdStore().workspaceConfig;
 
-    const environments = workspaceConfig?.environments || {};
+    const environments = workspaceConfig?.environments ?? {};
+
     const environmentList = Object.keys(environments);
 
     useEffect(() => {
@@ -107,8 +109,6 @@ export default function EnvironmentSwitcher() {
                 <div className="mt-4 space-y-1">
                     {environmentList?.length ? (
                         environmentList.map((envName, idx) => {
-                            const isCurrent = envName === currentEnv;
-
                             return (
                                 <div
                                     key={envName}

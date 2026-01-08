@@ -1,4 +1,4 @@
-import { useCwdStore } from "@/store/cwd-store";
+import { ZapWorkspaceConfig } from "@/types/fs";
 import {
     Select,
     SelectTrigger,
@@ -9,19 +9,12 @@ import {
 } from "../ui/select";
 import { useVariableStore } from "@/store/variable-store";
 
-export default function EnvironmentSelector() {
-    const workspaceConfigRaw = useCwdStore((state) => state.workspaceConfig);
-    const setEnvironment = useVariableStore((state) => state.setEnvironment);
-
-    let workspaceConfig;
-    try {
-        workspaceConfig =
-            typeof workspaceConfigRaw === "string"
-                ? JSON.parse(workspaceConfigRaw)
-                : workspaceConfigRaw;
-    } catch {
-        workspaceConfig = null;
-    }
+export default function EnvironmentSelector({
+    workspaceConfig,
+}: {
+    workspaceConfig?: ZapWorkspaceConfig;
+}) {
+    const setEnvironment = useVariableStore().setEnvironment;
 
     console.log("HEREEEE", workspaceConfig);
 

@@ -3,10 +3,9 @@ import {
     getZapWorkspace,
     getZapWorkspaceRecusrsively,
 } from "@/file-system/fs-operation";
-import { useCwdStore } from "@/store/cwd-store";
-import { Folder, File, type LucideProps } from "lucide-react";
-import { RefAttributes, ForwardRefExoticComponent } from "react";
+
 import { WorkspaceEntry } from "@/types/fs";
+import { ZapHttpMethods } from "@/types/request";
 
 export function useWorkspace() {
     const [workspaces, setWorkspaces] = useState<any[]>([]);
@@ -25,19 +24,14 @@ export function useWorkspace() {
 export type entriesType = {
     name: string;
     path: string;
-    isDir: boolean;
-    icon: ForwardRefExoticComponent<
-        Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
-    >;
+    is_dir: boolean;
+    method?: ZapHttpMethods;
     items?: entriesType[] | undefined;
 };
 
 export function useWorkspaceRecursive(path: string) {
     const [workspace, setWorkspace] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const workspaceUpdateTrigger = useCwdStore(
-        (state) => state.workspaceUpdateTrigger,
-    );
 
     async function fetchWorkspace() {
         setLoading(true);
@@ -57,15 +51,15 @@ export function useWorkspaceRecursive(path: string) {
     useEffect(() => {
         if (!path) return;
         fetchWorkspace();
-    }, [path, workspaceUpdateTrigger]);
+    }, [path]);
 
     const renderEntries = (entries: WorkspaceEntry[]): entriesType[] => {
         if (!entries || entries.length === 0) return [];
         return entries.map((entry) => ({
             name: entry.name,
             path: entry.path,
-            isDir: entry.isDirectory,
-            icon: entry.isDirectory ? Folder : File,
+            is_dir: entry.is_dir,
+            method: entry?.method,
             items: entry.children ? renderEntries(entry.children) : undefined,
         }));
     };

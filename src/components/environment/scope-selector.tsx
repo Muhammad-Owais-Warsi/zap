@@ -9,7 +9,7 @@ import {
 } from "../ui/select";
 
 export default function EnvrionmentScopeSelector() {
-    const setScope = useVariableStore((state) => state.setScope);
+    const setScope = useVariableStore().setScope;
 
     const handleScopeSelect = (scope: "workspace" | "folder") => {
         setScope(scope);

@@ -2,21 +2,20 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useCwdStore } from "../../store/cwd-store";
+
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { useTabsStore } from "@/store/tabs-store";
+
 import {
     createZapWorkspace,
     getZapFileContent,
 } from "@/file-system/fs-operation";
+import { useCwdStore } from "@/store/cwd-store";
 
 export default function WorkspaceSelector() {
-    const name = useCwdStore((state) => state.name);
-    const setWorkspaceConfig = useCwdStore((state) => state.setWorkspaceConfig);
-    const updateName = useCwdStore((state) => state.updateName);
-    const setWorkspaces = useCwdStore((state) => state.setWorkspaces);
-    const resetCwdStore = useCwdStore((state) => state.resetCwdStore);
-    const resetTabsStore = useTabsStore((state) => state.resetTabStore);
+    const setWorkspace = useCwdStore().setWorkspace;
+    const setWorkspaceConfig = useCwdStore().setWorkspaceConfig;
+    const setWorkspaces = useCwdStore().setWorkspaces;
+
     const { workspaces, loading } = useWorkspace();
     const [newWorkspace, setNewWorkspace] = useState("");
 
@@ -29,11 +28,10 @@ export default function WorkspaceSelector() {
             `${workspace}/workspace_config.json`,
         );
         // console.log(content);
-        setWorkspaceConfig(JSON.parse(content.message));
-        updateName(workspace);
+        setWorkspaceConfig(content.message);
+        setWorkspace(workspace);
     };
 
-    // workspace config setting logic to local storage
     const handleAddWorkspace = async () => {
         if (!newWorkspace.trim()) return;
         await createZapWorkspace(newWorkspace);
@@ -41,11 +39,9 @@ export default function WorkspaceSelector() {
             `${newWorkspace}/workspace_config.json`,
         );
         setWorkspaceConfig(JSON.parse(content.message));
-        updateName(newWorkspace);
+        setWorkspace(newWorkspace);
         setNewWorkspace("");
-        resetCwdStore();
-        resetTabsStore();
-        updateName(newWorkspace);
+        setWorkspace(newWorkspace);
     };
 
     if (loading) return <div className="text-center mt-10">Loading...</div>;

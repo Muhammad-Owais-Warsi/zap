@@ -1,25 +1,12 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useCwdStore } from "@/store/cwd-store";
-import { useZapRequest } from "@/store/request-store";
+import { useEffect, useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import {
-    flexRender,
-    getCoreRowModel,
-    useReactTable,
-    ColumnDef,
-} from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
+import { useTabsStore } from "@/store/tabs-store";
+import { useRef } from "react";
+import { ZapQueryParams, ZapRequest } from "@/types/request";
+import { Trash2 } from "lucide-react";
 
 export interface QueryParamRow {
     id: string;
@@ -29,43 +16,84 @@ export interface QueryParamRow {
 }
 
 export default function QueryParamsTable() {
-    const selectedFile = useCwdStore((state) => state.selectedFile);
-    const getRequest = useZapRequest((state) => state.getRequest);
-    const setQueryParams = useZapRequest((state) => state.setQueryParams);
+    const activeTab = useTabsStore().activeTab;
+    const updateTabContent = useTabsStore().updateTabContent;
 
     const [data, setData] = useState<QueryParamRow[]>([]);
 
+    const prevTabPath = useRef<string | undefined>(undefined);
+    const prevTabContent = useRef<ZapRequest | undefined>(undefined);
+    const prevData = useRef<QueryParamRow[]>([]);
+
     useEffect(() => {
-        if (!selectedFile) return;
-        const req = getRequest(selectedFile.path);
-        if (!req?.queryParams) {
+        if (activeTab?.content && typeof activeTab.content === "string") {
+            try {
+                const fileConfig = JSON.parse(activeTab.content);
+                const req = fileConfig.content as ZapRequest;
+                if (!req?.params || !Array.isArray(req.params)) {
+                    setData([]);
+                    prevTabContent.current = req;
+                    prevData.current = [];
+                } else {
+                    const loaded = req.params.map((h, idx) => ({
+                        id: idx.toString(),
+                        key: h.key,
+                        value: h.value,
+                        enabled: h.enabled ?? true,
+                    }));
+                    setData(loaded);
+                    prevTabContent.current = req;
+                    prevData.current = loaded;
+                }
+                prevTabPath.current = activeTab.path;
+            } catch {
+                setData([]);
+                prevTabContent.current = undefined;
+                prevData.current = [];
+                prevTabPath.current = activeTab?.path;
+            }
+        } else {
             setData([]);
-            return;
+            prevTabContent.current = undefined;
+            prevData.current = [];
+            prevTabPath.current = activeTab?.path;
         }
+    }, [activeTab]);
 
-        const loaded = req.queryParams.map((h, idx) => ({
-            id: idx.toString(),
-            key: h.key,
-            value: h.value,
-            enabled: h.enabled ?? true,
-        }));
-
-        setData(loaded);
-    }, [selectedFile, getRequest]);
-
-    const updateStore = useCallback(
-        (rows: QueryParamRow[]) => {
-            const activeParams = rows.map((d) => ({
+    const persistParams = useCallback(
+        (updatedData: QueryParamRow[]) => {
+            if (
+                !prevTabPath.current ||
+                !prevTabContent.current ||
+                !activeTab?.content ||
+                typeof activeTab.content !== "string"
+            )
+                return;
+            const activeParams: ZapQueryParams[] = updatedData.map((d) => ({
                 key: d.key,
                 value: d.value,
                 enabled: d.enabled,
             }));
-
-            if (selectedFile?.path) {
-                setQueryParams(activeParams, selectedFile.path);
+            const updatedReq: ZapRequest = {
+                ...prevTabContent.current,
+                params: activeParams,
+            };
+            try {
+                const prevFileConfig = JSON.parse(activeTab.content);
+                const updatedFileConfig = {
+                    ...prevFileConfig,
+                    content: updatedReq,
+                };
+                updateTabContent(
+                    prevTabPath.current,
+                    JSON.stringify(updatedFileConfig),
+                );
+                prevTabContent.current = updatedReq;
+            } catch {
+                // ignore
             }
         },
-        [selectedFile, setQueryParams],
+        [updateTabContent],
     );
 
     const handleInputChange = useCallback(
@@ -74,11 +102,12 @@ export default function QueryParamsTable() {
                 const updated = prev.map((row) =>
                     row.id === id ? { ...row, [field]: value } : row,
                 );
-                updateStore(updated);
+                prevData.current = updated;
+                persistParams(updated); // <-- Save to tab content
                 return updated;
             });
         },
-        [updateStore],
+        [persistParams],
     );
 
     const handleCheckboxChange = useCallback(
@@ -87,11 +116,24 @@ export default function QueryParamsTable() {
                 const updated = prev.map((row) =>
                     row.id === id ? { ...row, enabled: checked } : row,
                 );
-                updateStore(updated);
+                prevData.current = updated;
+                persistParams(updated);
                 return updated;
             });
         },
-        [updateStore],
+        [persistParams],
+    );
+
+    const handleDeleteRow = useCallback(
+        (id: string) => {
+            setData((prev) => {
+                const updated = prev.filter((row) => row.id !== id);
+                prevData.current = updated;
+                persistParams(updated);
+                return updated;
+            });
+        },
+        [persistParams],
     );
 
     const addRow = useCallback(() => {
@@ -102,155 +144,112 @@ export default function QueryParamsTable() {
             enabled: true,
         };
         setData((prev) => {
-            const updated = [...prev, newRow];
-            updateStore(updated);
+            const updated = [newRow, ...prev];
+            prevData.current = updated;
+            persistParams(updated);
             return updated;
         });
-    }, [updateStore]);
+    }, [persistParams]);
 
-    const columns = useMemo<ColumnDef<QueryParamRow>[]>(
-        () => [
-            {
-                id: "select",
-                header: ({ table }) => (
-                    <Checkbox
-                        checked={table.getIsAllRowsSelected()}
-                        onCheckedChange={(value) =>
-                            table.toggleAllRowsSelected(!!value)
-                        }
-                        aria-label="Select all rows"
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={row.original.enabled}
-                        onCheckedChange={(value) =>
-                            handleCheckboxChange(row.original.id, !!value)
-                        }
-                    />
-                ),
-            },
-            {
-                accessorKey: "key",
-                header: "Key",
-                cell: ({ row }) => {
-                    const isDisabled = !row.original.enabled;
-                    return (
-                        <Input
-                            type="text"
-                            value={row.original.key}
-                            disabled={isDisabled}
-                            className={`w-full border px-2 py-1 `}
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "key",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    );
-                },
-            },
-            {
-                accessorKey: "value",
-                header: "Value",
-                cell: ({ row }) => {
-                    const isDisabled = !row.original.enabled;
-                    return (
-                        <Input
-                            type="text"
-                            value={row.original.value}
-                            disabled={isDisabled}
-                            className={`w-full border px-2 py-1 `}
-                            onChange={(e) =>
-                                handleInputChange(
-                                    row.original.id,
-                                    "value",
-                                    e.target.value,
-                                )
-                            }
-                        />
-                    );
-                },
-            },
-            {
-                id: "add",
-                header: () => (
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={addRow}
-                        className="ml-auto"
-                    >
-                        <Plus />
-                    </Button>
-                ),
-                cell: () => null,
-            },
-        ],
-        [handleInputChange, handleCheckboxChange, addRow],
+    const allEnabled = data.length > 0 && data.every((row) => row.enabled);
+    const someEnabled = data.some((row) => row.enabled);
+
+    const handleSelectAll = useCallback(
+        (checked: boolean) => {
+            setData((prev) => {
+                const updated = prev.map((row) => ({
+                    ...row,
+                    enabled: checked,
+                }));
+                prevData.current = updated;
+                persistParams(updated);
+                return updated;
+            });
+        },
+        [persistParams],
     );
 
-    const table = useReactTable({
-        data,
-        columns,
-        getRowId: (row) => row.id,
-        getCoreRowModel: getCoreRowModel(),
-    });
-
     return (
-        <Tabs defaultValue="table">
-            <TabsContent value="table" className="flex flex-col gap-4">
-                <div className="max-h-160 overflow-auto rounded-lg border">
-                    <Table>
-                        <TableHeader className="sticky top-0 bg-background z-10">
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id}>
-                                            {flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext(),
-                                            )}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.length === 0 ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="text-center"
-                                    >
-                                        No query params added
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow
-                                        key={row.id}
-                                        data-state={
-                                            row.original.enabled && "selected"
-                                        }
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext(),
-                                                )}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </TabsContent>
-        </Tabs>
+        <div className="flex flex-col gap-4 ">
+            <div className="flex items-center gap-2 mb-2 justify-end">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={addRow}
+                    className="flex items-center"
+                >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Param
+                </Button>
+                <Checkbox
+                    checked={allEnabled}
+                    indeterminate={!allEnabled && someEnabled}
+                    onCheckedChange={(value) => handleSelectAll(!!value)}
+                    className="ml-2"
+                />
+                <span className="text-sm">Select All</span>
+            </div>
+            <div className="flex flex-col gap-2">
+                {data.length === 0 && (
+                    <div className="text-center text-muted-foreground py-4">
+                        No params added
+                    </div>
+                )}
+                {data.map((row) => (
+                    <div>
+                        <div
+                            key={row.id}
+                            className="flex flex-col md:flex-row gap-2 items-center  p-3 bg-background"
+                        >
+                            <Checkbox
+                                checked={row.enabled}
+                                onCheckedChange={(value) =>
+                                    handleCheckboxChange(row.id, !!value)
+                                }
+                                className="mr-2"
+                            />
+
+                            <Input
+                                type="text"
+                                value={row.key}
+                                disabled={!row.enabled}
+                                placeholder="Param key"
+                                className="flex-1 min-w-0"
+                                onChange={(e) =>
+                                    handleInputChange(
+                                        row.id,
+                                        "key",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            <Input
+                                type="text"
+                                value={row.value}
+                                disabled={!row.enabled}
+                                placeholder="Param value"
+                                className="flex-1 min-w-0"
+                                onChange={(e) =>
+                                    handleInputChange(
+                                        row.id,
+                                        "value",
+                                        e.target.value,
+                                    )
+                                }
+                            />
+
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                className=" ml-2  "
+                                onClick={() => handleDeleteRow(row.id)}
+                            >
+                                <Trash2 className="w-4 h-4 text-red-600 hover:text-white" />
+                            </Button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

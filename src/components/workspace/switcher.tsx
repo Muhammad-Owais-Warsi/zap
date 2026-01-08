@@ -10,22 +10,21 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { useTabsStore } from "@/store/tabs-store";
+
 import { useCwdStore } from "@/store/cwd-store";
-import { Book, SwitchCamera } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { useTabsStore } from "@/store/tabs-store";
 
 export function WorkspaceSwitcher() {
     const [open, setOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
 
-    const resetTabsStore = useTabsStore((state) => state.resetTabStore);
-    const name = useCwdStore((state) => state.name);
-    const updateName = useCwdStore((state) => state.updateName);
-    const workspaces = useCwdStore((state) => state.workspaces);
+    const workspace = useCwdStore().workspace;
+    const setWorkspace = useCwdStore().setWorkspace;
+    const resetTabs = useTabsStore().resetTabs;
+    const workspaces = useCwdStore().workspaces;
 
     const filteredWorkspaces =
-        workspaces?.filter((item) => item !== name) || [];
+        workspaces?.filter((item) => item !== workspace) || [];
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -48,11 +47,11 @@ export function WorkspaceSwitcher() {
         (index: number) => {
             if (!filteredWorkspaces?.length) return;
             const selected = filteredWorkspaces[index];
-            updateName(selected);
-            resetTabsStore();
+            setWorkspace(selected);
+            resetTabs();
             setOpen(false);
         },
-        [filteredWorkspaces, updateName, resetTabsStore],
+        [filteredWorkspaces, setWorkspace],
     );
 
     const handleDialogKey = useCallback(
@@ -84,19 +83,14 @@ export function WorkspaceSwitcher() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild className="hover:cursor-pointer">
-                <Tooltip>
-                    <TooltipTrigger>
-                        <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            className="hover:cursor-pointer"
-                            onClick={() => setOpen(true)}
-                        >
-                            <SwitchCamera />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Switch Workspace</TooltipContent>
-                </Tooltip>
+                <Button
+                    variant="ghost"
+                    size="xs"
+                    className="text-xs hover:cursor-pointer flex items-center gap-1"
+                    onClick={() => setOpen(true)}
+                >
+                    <span>{workspace}</span>
+                </Button>
             </DialogTrigger>
 
             <DialogContent

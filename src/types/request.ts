@@ -41,7 +41,7 @@ export type ZapBody = {
     none: null;
     "form-data": ZapFormDataBodyType[];
     "x-www-form-urlencoded": ZapFormUrlEncodedBodyType[];
-    raw: Record<ZapRawBodyTypeLanguage, string>;
+    raw: string;
 };
 
 // export type ZapBody = {
@@ -55,12 +55,12 @@ export type ZapBodyContent =
     | ZapFormUrlEncodedBodyType[]
     | null;
 
-export type ZapRawBodyTypeLanguage =
-    | "text"
-    | "json"
-    | "html"
-    | "javascript"
-    | "xml";
+// export type ZapRawBodyTypeLanguage =
+//     | "text"
+//     | "json"
+//     | "html"
+//     | "javascript"
+//     | "xml";
 
 // export type ZapRawBodyType = {
 //     language: ZapRawBodyTypeLanguage;
@@ -71,14 +71,12 @@ export type ZapFormDataBodyType = {
     key: string;
     value: string | File;
     type: "text" | "file";
-    description: string;
     enabled?: boolean;
 };
 
 export type ZapFormUrlEncodedBodyType = {
     key: string;
     value: string;
-    description: string;
     enabled?: boolean;
 };
 
@@ -89,6 +87,7 @@ export type ZapRequest = {
     method: ZapHttpMethods;
     headers: ZapHeaders[];
     body: ZapBody;
+    currentBodyType: ZapBodyType;
     params: ZapQueryParams[];
     auth: ZapAuth;
     networkConfig: ZapNetworkConfig;
@@ -106,7 +105,6 @@ export type ZapHeaders = {
 export type ZapVariables = {
     key: string;
     value: string;
-    rootId?: string;
     scope: "workspace" | "folder";
 };
 
