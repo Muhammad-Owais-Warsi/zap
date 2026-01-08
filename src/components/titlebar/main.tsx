@@ -1,14 +1,17 @@
-import { useVariableStore } from "@/store/variable-store";
+// import { useVariableStore } from "@/store/variable-store";
 import { Button } from "../ui/button";
 import { useState, useEffect, useRef } from "react";
 import { Maximize, Minus, Square, X } from "lucide-react";
 import { close, maximize, minimize, enableDragging } from "./config";
-import { useCwdStore } from "@/store/cwd-store";
-import EnvironmentSwitcher from "../environment/switcher";
+// import { useCwdStore } from "@/store/cwd-store";
+// import EnvironmentSwitcher from "../environment/switcher";
+import { useCwdStore } from "@/store/new/cwd-store";
+import { WorkspaceSwitcher } from "../workspace/switcher";
 
 export default function ZapTitleBar() {
-    const currentEnv = useVariableStore((state) => state.current);
-    const name = useCwdStore((state) => state.name);
+    // const currentEnv = useVariableStore((state) => state.current);
+    // const name = useCwdStore((state) => state.name);
+    const workspace = useCwdStore().workspace;
     const [currentTime, setCurrentTime] = useState(new Date());
     const dragAreaRef = useRef(null);
 
@@ -19,15 +22,6 @@ export default function ZapTitleBar() {
 
         return () => clearInterval(timer);
     }, []);
-
-    const formatTime = (date: Date) => {
-        return date.toLocaleTimeString("en-US", {
-            hour12: true,
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
-    };
 
     useEffect(() => {
         if (dragAreaRef.current) {
@@ -46,7 +40,8 @@ export default function ZapTitleBar() {
     return (
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center w-full h-10 bg-background border-b select-none">
             <div className="flex items-center pl-4">
-                <EnvironmentSwitcher />
+                {/*<EnvironmentSwitcher />*/}
+                <WorkspaceSwitcher />
             </div>
 
             <div
@@ -55,9 +50,6 @@ export default function ZapTitleBar() {
             >
                 <Button variant="ghost" size="xs" className="text-xs font-mono">
                     {formatDate(currentTime)}
-                </Button>
-                <Button variant="ghost" size="xs" className="text-xs font-mono">
-                    {formatTime(currentTime)}
                 </Button>
             </div>
 

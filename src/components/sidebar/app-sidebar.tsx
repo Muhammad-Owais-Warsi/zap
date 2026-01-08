@@ -31,9 +31,8 @@ export function AppSidebar({ workspace, ...props }: AppSidebarProps) {
     const initialized = useRef(false);
 
     useEffect(() => {
-        if (!initialized.current && entries && entries.length > 0) {
+        if (entries && entries.length > 0) {
             setAllEntries(entries);
-            initialized.current = true;
         }
     }, [entries, setAllEntries]);
 

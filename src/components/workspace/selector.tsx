@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-// import { useCwdStore } from "../../store/cwd-store";
+
 import { useWorkspace } from "@/hooks/useWorkspace";
-// import { useTabsStore } from "@/store/tabs-store";
+
 import {
     createZapWorkspace,
     getZapFileContent,
@@ -14,30 +14,24 @@ import { useCwdStore } from "@/store/new/cwd-store";
 export default function WorkspaceSelector() {
     const setWorkspace = useCwdStore().setWorkspace;
     const setWorkspaceConfig = useCwdStore().setWorkspaceConfig;
-    // const name = useCwdStore((state) => state.name);
-    // const setWorkspaceConfig = useCwdStore((state) => state.setWorkspaceConfig);
-    // const updateName = useCwdStore((state) => state.updateName);
-    // const setWorkspaces = useCwdStore((state) => state.setWorkspaces);
-    // const resetCwdStore = useCwdStore((state) => state.resetCwdStore);
-    // const resetTabsStore = useTabsStore((state) => state.resetTabStore);
+    const setWorkspaces = useCwdStore().setWorkspaces;
+
     const { workspaces, loading } = useWorkspace();
     const [newWorkspace, setNewWorkspace] = useState("");
 
-    // I think this is not needed
-    // useEffect(() => {
-    //     setWorkspaces(workspaces);
-    // }, [workspaces]);
+    useEffect(() => {
+        setWorkspaces(workspaces);
+    }, [workspaces]);
 
     const handleSelect = async (workspace: string) => {
         const content = await getZapFileContent(
             `${workspace}/workspace_config.json`,
         );
         // console.log(content);
-        setWorkspaceConfig(JSON.parse(content.message));
+        setWorkspaceConfig(content.message);
         setWorkspace(workspace);
     };
 
-    // workspace config setting logic to local storage
     const handleAddWorkspace = async () => {
         if (!newWorkspace.trim()) return;
         await createZapWorkspace(newWorkspace);
@@ -47,8 +41,6 @@ export default function WorkspaceSelector() {
         setWorkspaceConfig(JSON.parse(content.message));
         setWorkspace(newWorkspace);
         setNewWorkspace("");
-        // resetCwdStore();
-        // resetTabsStore();
         setWorkspace(newWorkspace);
     };
 

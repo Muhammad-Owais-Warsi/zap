@@ -36,6 +36,7 @@ interface TabsStore {
     updateTabMethod: (path: string, mathod: ZapHttpMethods) => void;
     updateTabContent: (path: string, content: string) => void;
     updateIsDirty: (path: string, isDirty: boolean) => void;
+    resetTabs: () => void;
 }
 
 export const useTabsStore = createSelectors(
@@ -159,6 +160,10 @@ export const useTabsStore = createSelectors(
                         state.activeTab.isDirty = isDirty;
                 }),
 
+            resetTabs: () =>
+                set((state) => {
+                    state.tabs = [];
+                }),
             renameTabPath: (oldPath: string, newName: string, isDir: boolean) =>
                 set((state) => {
                     const parentPath = oldPath
